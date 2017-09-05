@@ -1,0 +1,7 @@
+[package]
+name = "arden-sea"
+version = "0.1.0"
+authors = ["Tom Richardson <tgrkzus@gmail.com>"]
+
+[dependencies]
+ncurses = "5.86.0"
