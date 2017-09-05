@@ -1,28 +1,32 @@
-use std::io;
-use std::io::Write;
+extern crate tcod;
+
+use tcod::*;
 
 fn main() {
 
-    // Init game
-    loop {
-        // Game loop
-        println!("1) Play");
-        println!("2) Options");
-        println!("3) Quit");
-        print!("Input: ");
-        io::stdout().flush();
-        let choice = get_choice();
-        print!("{}", choice);
+    let mut root = init_game();
 
-        // Clear terminal
-        print!("{}[2J", 27 as char);
+    let mut x = 0;
+    let mut y = 0;
+    loop {
+        root.put_char_ex(x, y, 
+                         '@', 
+                         colors::YELLOW, 
+                         colors::BLACK);
+        root.flush();
     }
 
-    // Cleanup
+    cleanup_game();
 }
 
-fn get_choice() -> String {
-    let mut choice = String::new();
-    io::stdin().read_line(&mut choice).expect("failed");
-    return choice;
+fn display_game_state() {
+}
+
+fn init_game() -> RootConsole {
+    return RootConsole::initializer().
+        size(80, 80).
+        title("Game").init();
+}
+
+fn cleanup_game() {
 }
