@@ -81,6 +81,8 @@ impl Game {
                     KeyCode::Up     => p = ( 0, -1),
                     KeyCode::Down   => p = ( 0,  1),
 
+                    KeyCode::NumPad5 => p = ( 0,  0),
+
                     KeyCode::NumPad4 => p = (-1,  0),
                     KeyCode::NumPad6 => p = ( 1,  0),
                     KeyCode::NumPad8 => p = ( 0, -1),
@@ -105,7 +107,15 @@ impl Game {
                     p_ent.offset(p.0, p.1);
                 },
                 InputState::EXAMINE => {
-                    println!("Examine {} {}", p_ent.x + p.0, p_ent.y + p.1);
+                    let mut ent_name = String::new();
+                    let newP = (p_ent.x + p.0, p_ent.y + p.1);
+                    for e in self.entities.iter() {
+                        if (e.x, e.y) == newP {
+                            ent_name = e.ident.clone();
+                            break;
+                        }
+                    }
+                    println!("Examine {} {}: {}", newP.0, newP.1, ent_name);
                     self.state = InputState::NORMAL;
                 },
                 _ => println!("what"),
