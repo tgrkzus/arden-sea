@@ -54,7 +54,10 @@ impl Game {
                     'D' | 'd' => p_ent.offset( 1,  0),
                     'W' | 'w' => p_ent.offset( 0, -1),
                     'S' | 's' => p_ent.offset( 0,  1),
-                    _ => println!("Invalid input"),
+                    _ => {
+                        println!("Invalid input");
+                        continue;
+                    },
                 }
             }
             else {
@@ -76,10 +79,15 @@ impl Game {
                     KeyCode::NumPad3 => p_ent.offset( 1,  1),
 
                     KeyCode::Escape => process::exit(0),
-                    _ => println!("Invalid input"),
+                    _ => {
+                        println!("Invalid input");
+                        continue;
+                    },
+
                 }
             }
 
+            println!("Tick!");
 
 
         }
@@ -87,11 +95,13 @@ impl Game {
 
     fn display_game_state(&mut self) {
         for e in self.entities.iter() {
+            println!("{:?}", e);
             self.root.put_char_ex(e.x, e.y, e.c, 
                                   colors::RED, colors::BLACK); 
         }
 
         let mut p_ent = self.player.get_entity();
+        println!("{:?}", p_ent);
         self.root.put_char_ex(p_ent.x, p_ent.y, p_ent.c, 
                               colors::YELLOW, colors::BLACK);
     }

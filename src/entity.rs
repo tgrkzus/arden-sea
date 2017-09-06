@@ -1,3 +1,4 @@
+#[derive (Debug)]
 pub struct Entity {
     pub c: char,
     pub x: i32,
