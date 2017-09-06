@@ -1,20 +1,22 @@
 extern crate tcod;
-
 use self::tcod::*;
 use self::tcod::input::*;
+use std::process;
+
+use entity::*;
 
 pub struct Game {
     root : RootConsole,
-    x : i32,
-    y : i32,
+    entities : Vec<Entity>,
+    player : Entity,
 }
 
 impl Game {
     pub fn new() -> Self {
-        return Game {
+        return Self {
             root : Game::init_game(),
-            x : 0,
-            y : 0,
+            entities : Vec::new(),
+            player : Entity::new('@', 5, 5),
         };
     }
 
@@ -24,19 +26,18 @@ impl Game {
             title("Game").init();
     }
 
-    pub fn cleanup_game(&self) {
-    }
-
     pub fn run(&mut self) {
+        self.entities.push(Entity::new('C', 2, 3));
+        self.entities.push(Entity::new('F', 9, 7));
+        self.entities.push(Entity::new('L', 4, 9));
+        self.entities.push(Entity::new('B', 10, 3));
         loop {
             // Clear
             self.root.clear();
 
             // Draw state
-            self.root.put_char_ex(self.x, self.y, 
-                             '@', 
-                             colors::YELLOW, 
-                             colors::BLACK);
+            self.display_game_state();
+
             // Flush changes
             self.root.flush();
 
@@ -45,19 +46,20 @@ impl Game {
 
             if c.code == KeyCode::Char {
                 match c.printable {
-                    'A' | 'a' => self.x -= 1,
-                    'D' | 'd' => self.x += 1,
-                    'W' | 'w' => self.y -= 1,
-                    'S' | 's' => self.y += 1,
+                    'A' | 'a' => self.player.x -= 1,
+                    'D' | 'd' => self.player.x += 1,
+                    'W' | 'w' => self.player.y -= 1,
+                    'S' | 's' => self.player.y += 1,
                     _ => println!("Invalid input"),
                 }
             }
             else {
                 match c.code {
-                    KeyCode::Left  => self.x -= 1,
-                    KeyCode::Right => self.x += 1,
-                    KeyCode::Up    => self.y -= 1,
-                    KeyCode::Down  => self.y += 1,
+                    KeyCode::Left   => self.player.x -= 1,
+                    KeyCode::Right  => self.player.x += 1,
+                    KeyCode::Up     => self.player.y -= 1,
+                    KeyCode::Down   => self.player.y += 1,
+                    KeyCode::Escape => process::exit(0),
                     _ => println!("Invalid input"),
                 }
             }
@@ -66,7 +68,13 @@ impl Game {
         }
     }
 
-    fn display_game_state(&self) {
-    }
+    fn display_game_state(&mut self) {
+        for e in self.entities.iter() {
+            self.root.put_char_ex(e.x, e.y, e.c, 
+                                  colors::RED, colors::BLACK); 
+        }
 
+        self.root.put_char_ex(self.player.x, self.player.y, self.player.c, 
+                              colors::YELLOW, colors::BLACK);
+    }
 }

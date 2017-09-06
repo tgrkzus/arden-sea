@@ -1,8 +1,7 @@
 mod game;
-use game::*;
+mod entity;
 
 fn main() {
-    let mut game = Game::new();
+    let mut game = game::Game::new();
     game.run();
-    game.cleanup_game();
 }
