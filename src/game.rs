@@ -46,19 +46,19 @@ impl Game {
 
             if c.code == KeyCode::Char {
                 match c.printable {
-                    'A' | 'a' => self.player.x -= 1,
-                    'D' | 'd' => self.player.x += 1,
-                    'W' | 'w' => self.player.y -= 1,
-                    'S' | 's' => self.player.y += 1,
+                    'A' | 'a' => self.player.offset(-1,  0),
+                    'D' | 'd' => self.player.offset( 1,  0),
+                    'W' | 'w' => self.player.offset( 0, -1),
+                    'S' | 's' => self.player.offset( 0,  1),
                     _ => println!("Invalid input"),
                 }
             }
             else {
                 match c.code {
-                    KeyCode::Left   => self.player.x -= 1,
-                    KeyCode::Right  => self.player.x += 1,
-                    KeyCode::Up     => self.player.y -= 1,
-                    KeyCode::Down   => self.player.y += 1,
+                    KeyCode::Left   => self.player.offset(-1,  0),
+                    KeyCode::Right  => self.player.offset( 1,  0),
+                    KeyCode::Up     => self.player.offset( 0, -1),
+                    KeyCode::Down   => self.player.offset( 0,  1),
                     KeyCode::Escape => process::exit(0),
                     _ => println!("Invalid input"),
                 }
