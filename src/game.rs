@@ -4,11 +4,12 @@ use self::tcod::input::*;
 use std::process;
 
 use entity::*;
+use player::*;
 
 pub struct Game {
     root : RootConsole,
     entities : Vec<Entity>,
-    player : Entity,
+    player : Player,
 }
 
 impl Game {
@@ -16,7 +17,7 @@ impl Game {
         return Self {
             root : Game::init_game(),
             entities : Vec::new(),
-            player : Entity::new('@', 5, 5),
+            player : Player::new('@', 5, 5),
         };
     }
 
@@ -44,25 +45,41 @@ impl Game {
             // process input
             let c = self.root.wait_for_keypress(false);
 
+            // player entity
+            let mut p_ent = self.player.get_entity();
             if c.code == KeyCode::Char {
                 match c.printable {
-                    'A' | 'a' => self.player.offset(-1,  0),
-                    'D' | 'd' => self.player.offset( 1,  0),
-                    'W' | 'w' => self.player.offset( 0, -1),
-                    'S' | 's' => self.player.offset( 0,  1),
+                    // Cardinals
+                    'A' | 'a' => p_ent.offset(-1,  0),
+                    'D' | 'd' => p_ent.offset( 1,  0),
+                    'W' | 'w' => p_ent.offset( 0, -1),
+                    'S' | 's' => p_ent.offset( 0,  1),
                     _ => println!("Invalid input"),
                 }
             }
             else {
                 match c.code {
-                    KeyCode::Left   => self.player.offset(-1,  0),
-                    KeyCode::Right  => self.player.offset( 1,  0),
-                    KeyCode::Up     => self.player.offset( 0, -1),
-                    KeyCode::Down   => self.player.offset( 0,  1),
+                    // Cardinals
+                    KeyCode::Left   => p_ent.offset(-1,  0),
+                    KeyCode::Right  => p_ent.offset( 1,  0),
+                    KeyCode::Up     => p_ent.offset( 0, -1),
+                    KeyCode::Down   => p_ent.offset( 0,  1),
+
+                    KeyCode::NumPad4 => p_ent.offset(-1,  0),
+                    KeyCode::NumPad6 => p_ent.offset( 1,  0),
+                    KeyCode::NumPad8 => p_ent.offset( 0, -1),
+                    KeyCode::NumPad2 => p_ent.offset( 0,  1),
+
+                    KeyCode::NumPad7 => p_ent.offset(-1, -1),
+                    KeyCode::NumPad9 => p_ent.offset( 1, -1),
+                    KeyCode::NumPad1 => p_ent.offset(-1,  1),
+                    KeyCode::NumPad3 => p_ent.offset( 1,  1),
+
                     KeyCode::Escape => process::exit(0),
                     _ => println!("Invalid input"),
                 }
             }
+
 
 
         }
@@ -74,7 +91,8 @@ impl Game {
                                   colors::RED, colors::BLACK); 
         }
 
-        self.root.put_char_ex(self.player.x, self.player.y, self.player.c, 
+        let mut p_ent = self.player.get_entity();
+        self.root.put_char_ex(p_ent.x, p_ent.y, p_ent.c, 
                               colors::YELLOW, colors::BLACK);
     }
 }
