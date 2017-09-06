@@ -5,9 +5,9 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn new(character: char, x_point: i32, y_point: i32) -> Self {
+    pub fn new(ident: String, c: char, x: i32, y: i32) -> Self {
         return Self {
-            entity: Entity::new(character, x_point, y_point),
+            entity: Entity::new(ident, c, x, y),
         };
     }
 
