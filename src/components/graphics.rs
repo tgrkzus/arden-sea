@@ -4,6 +4,7 @@ use self::tcod::console::*;
 use self::tcod::input::*;
 
 use components::*;
+use game::*;
 
 #[derive(Debug, Clone)]
 pub struct GraphicsComponent {
@@ -13,8 +14,8 @@ pub struct GraphicsComponent {
 }
 
 impl Component for GraphicsComponent {
-    fn draw(&mut self, root: &mut Root) {
-        root.put_char_ex(self.x, self.y, self.c, 
+    fn draw(&mut self, game: &mut Game) {
+        game.root.put_char_ex(self.x, self.y, self.c, 
                          colors::RED, colors::BLACK); 
     }
 }

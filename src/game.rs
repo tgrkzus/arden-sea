@@ -6,15 +6,15 @@ use std::process;
 use entity::*;
 use components::graphics::*;
 
-enum InputState {
+pub enum InputState {
     NORMAL,
     EXAMINE,
 }
 
 pub struct Game {
-    root: RootConsole,
-    entities: Vec<Entity>,
-    state: InputState,
+    pub root: RootConsole,
+    pub entities: Vec<Entity>,
+    pub state: InputState,
 }
 
 impl Game {
@@ -42,7 +42,7 @@ impl Game {
 
             // Draw state
             for e in self.entities.iter_mut() {
-                e.components[0].draw(&mut self.root);
+                e.components[0].draw(self);
             }
 
             // Flush changes
@@ -52,7 +52,7 @@ impl Game {
             let c = self.root.wait_for_keypress(false);
 
             for e in self.entities.iter_mut() {
-                e.components[0].tick(0);
+                e.components[0].tick(self, 0);
             }
             
             /*
