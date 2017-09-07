@@ -4,7 +4,7 @@ use self::tcod::input::*;
 use std::process;
 
 use entity::*;
-use component::*;
+use components::graphics::*;
 
 enum InputState {
     NORMAL,

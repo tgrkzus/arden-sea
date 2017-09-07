@@ -1,6 +1,6 @@
 mod game;
 mod entity;
-mod component;
+mod components;
 
 fn main() {
     let mut game = game::Game::new();

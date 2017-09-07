@@ -1,25 +1,9 @@
-use std::fmt::Debug;
-use std::marker::Sized;
 extern crate tcod;
 use self::tcod::*;
 use self::tcod::console::*;
 use self::tcod::input::*;
 
-pub trait Component {
-    fn tick(&mut self, delta_time: i32) {
-        println!("Tick C");
-    }
-
-    fn draw(&mut self, root: &mut Root) {
-        println!("Draw C");
-    }
-}
-/*
-    fn tick(self, delta_time: i32) where Self : Debug + Sized {
-        println!("Tick: {:?}", self);
-    }
-    */
-
+use components::*;
 
 #[derive(Debug, Clone)]
 pub struct GraphicsComponent {

@@ -1,6 +1,5 @@
-use component::*;
+use components::*;
 
-//#[derive (Debug, Clone)]
 pub struct Entity {
     pub components: Vec<Box<Component>>,
 }
