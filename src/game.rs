@@ -4,7 +4,7 @@ use self::tcod::input::*;
 use std::process;
 
 use entity::*;
-use player::*;
+use component::*;
 
 enum InputState {
     NORMAL,
@@ -14,7 +14,6 @@ enum InputState {
 pub struct Game {
     root: RootConsole,
     entities: Vec<Entity>,
-    player: Player,
     state: InputState,
 }
 
@@ -23,7 +22,6 @@ impl Game {
         return Self {
             root : Game::init_game(),
             entities : Vec::new(),
-            player : Player::new("Player".to_string(), '@', 5, 5),
             state: InputState::NORMAL,
         };
     }
@@ -35,23 +33,29 @@ impl Game {
     }
 
     pub fn run(&mut self) {
-        self.entities.push(Entity::new("C".to_string(), 'C', 2, 3));
-        self.entities.push(Entity::new("F".to_string(), 'F', 9, 7));
-        self.entities.push(Entity::new("L".to_string(), 'L', 4, 9));
-        self.entities.push(Entity::new("B".to_string(), 'B', 10, 3));
+        let mut e = Entity::new();
+        e.components.push(Box::new(GraphicsComponent::new('@', 2, 2)));
+        self.entities.push(e);
         loop {
             // Clear
             self.root.clear();
 
             // Draw state
-            self.display_game_state();
+            for e in self.entities.iter_mut() {
+                e.components[0].draw(&mut self.root);
+            }
 
             // Flush changes
             self.root.flush();
 
             // process input
             let c = self.root.wait_for_keypress(false);
+
+            for e in self.entities.iter_mut() {
+                e.components[0].tick(0);
+            }
             
+            /*
             let mut p = (0, 0);
 
             // player entity
@@ -123,11 +127,13 @@ impl Game {
 
             println!("Tick!");
 
+            */
 
         }
     }
 
     fn display_game_state(&mut self) {
+        /*
         for e in self.entities.iter() {
             //println!("{:?}", e);
             self.root.put_char_ex(e.x, e.y, e.c, 
@@ -138,5 +144,6 @@ impl Game {
         println!("{:?}", p_ent);
         self.root.put_char_ex(p_ent.x, p_ent.y, p_ent.c, 
                               colors::YELLOW, colors::BLACK);
+        */
     }
 }
