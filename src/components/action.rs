@@ -13,6 +13,8 @@ use components::position::CharacterPositionComponent;
 use components::state::{TurnStateComponent, ActionState};
 use game::WorldAttributes;
 
+use world::map::{TileType, Tile, Map};
+
 #[derive(Debug)]
 pub struct ControllerComponent {
     pub controller: Controllers,
@@ -34,10 +36,11 @@ pub struct ActionControllerSystem;
 impl<'a> System<'a> for ActionControllerSystem {
     type SystemData = (WriteStorage<'a, CharacterPositionComponent>,
                        ReadStorage<'a, TurnStateComponent>,
-                       Fetch<'a, WorldAttributes>);
+                       Fetch<'a, WorldAttributes>,
+                       Fetch<'a, Map>);
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut positions, turns, attr) = data;
+        let (mut positions, turns, attr, map) = data;
 
 
         for (position, turn) in (&mut positions, &turns).join() {
@@ -47,19 +50,11 @@ impl<'a> System<'a> for ActionControllerSystem {
                 }
                 ActionState::MoveBy => {
                     let mut newP = (position.x + turn.vec.0, position.y + turn.vec.1);
-
-                    /*
-                    for tPos in &occupied {
-                        match tPos.0 {
-                            TileType::Impassable => {
-                                if tPos.1 == newP.0 && tPos.2 == newP.1 {
-                                    newP = (position.x, position.y);
-                                }
-                            },
-                            _ => { },
-                        }
+                    
+                    match map.get_tile(newP.0 as usize, newP.1 as usize, 0).unwrap().tile_type {
+                        TileType::Wall | TileType::Air => newP = (position.x, position.y),
+                        TileType::Ground => { },
                     }
-                    */
 
                     if newP.0 < 0 || newP.0 >= attr.size.0 as i32 || newP.1 < 0 || newP.1 >= attr.size.1 as i32 {
                         newP = (position.x, position.y);
