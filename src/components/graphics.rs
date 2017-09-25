@@ -42,23 +42,8 @@ impl<'a> System<'a> for RenderSystem {
         let mut log_screen = Offscreen::new(LOG_SIZE.0, LOG_SIZE.1);
 
         // Render map
-        for x in 0..WORLD_WINDOW_SIZE.0 {
-            for y in 0..WORLD_WINDOW_SIZE.1 {
-                match map.get_tile(x as usize, y as usize, 0 as usize) {
-                    Some(tile) => { 
-                        let mut c: char;
-                        match tile.tile_type {
-                            TileType::Wall => c = 'W',
-                            TileType::Ground => c = '.',
-                            TileType::Air => c = ' ',
-                        }
-                        world_screen.put_char_ex(x, y, c, colors::WHITE, colors::BLACK);
-                    },
-                    None => panic!("No tile what"),
-                }
-            }
-        }
-
+        RenderSystem::draw_tiles(&mut world_screen, &map);
+        
         // Render characters
         for (render, position) in (&render, &position).join() {
             world_screen.put_char_ex(position.x, position.y, render.c, colors::RED, colors::BLACK);
@@ -83,6 +68,41 @@ impl<'a> System<'a> for RenderSystem {
 }
 
 impl RenderSystem {
+
+    fn draw_tiles(console: &mut Console, map: &Map) {
+        for x in 0..WORLD_WINDOW_SIZE.0 {
+            for y in 0..WORLD_WINDOW_SIZE.1 {
+                match map.get_tile(x as usize, y as usize, 0 as usize) {
+                    Some(tile) => { 
+                        let mut c: char;
+                        let mut foreground: colors::Color;
+                        let mut background: colors::Color;
+                        match tile.tile_type {
+                            TileType::Wall => {
+                                c = 'W';
+                                foreground = colors::GREY;
+                                background = colors::BLACK;
+                            }
+                            TileType::Ground => {
+                                c = '.';
+                                foreground = colors::DARKEST_GREY;
+                                background = colors::BLACK;
+                            }
+                            TileType::Air => {
+                                c = ' ';
+                                foreground = colors::LIGHT_GREY;
+                                background = colors::DARK_GREY;
+                            }
+                        }
+                        console.put_char_ex(x, y, c, foreground, background);
+                    },
+                    None => panic!("No tile what"),
+                }
+            }
+        }
+
+    }
+
     fn draw_frame(console: &mut Console, x: i32, y: i32, width: i32, height: i32, color: colors::Color) {
         console.set_default_foreground(color);
         console.horizontal_line(x, y, width, BackgroundFlag::None);
