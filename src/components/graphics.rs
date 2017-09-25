@@ -50,7 +50,7 @@ impl<'a> System<'a> for RenderSystem {
         }
 
         // World window frame + blitting
-        RenderSystem::draw_frame(&mut *window, WORLD_OFFSET.0 - 1, WORLD_OFFSET.1 - 1, WORLD_WINDOW_SIZE.0 + 1, WORLD_WINDOW_SIZE.1 + 1, colors::DESATURATED_FLAME);
+        RenderSystem::draw_frame(&mut *window, WORLD_OFFSET.0 - 1, WORLD_OFFSET.1 - 1, WORLD_WINDOW_SIZE.0 + 1, WORLD_WINDOW_SIZE.1 + 1, colors::DESATURATED_BLUE);
         tcod::console::blit(&world_screen, (0, 0), WORLD_WINDOW_SIZE,
                       &mut (*window), WORLD_OFFSET, 1.0, 1.0);
 
@@ -59,7 +59,7 @@ impl<'a> System<'a> for RenderSystem {
         log_screen.print_rect(0, 0, LOG_SIZE.0, LOG_SIZE.1, log.content.join("\n"));
 
         // Log window frame + blitting
-        RenderSystem::draw_frame(&mut *window, LOG_OFFSET.0 - 1, LOG_OFFSET.1 - 1, LOG_SIZE.0 + 1, LOG_SIZE.1 + 1, colors::DESATURATED_FLAME);
+        RenderSystem::draw_frame(&mut *window, LOG_OFFSET.0 - 1, LOG_OFFSET.1 - 1, LOG_SIZE.0 + 1, LOG_SIZE.1 + 1, colors::DESATURATED_BLUE);
         tcod::console::blit(&log_screen, (0, 0), LOG_SIZE,
                       &mut (*window), LOG_OFFSET, 1.0, 1.0);
         // Flush changes
