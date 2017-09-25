@@ -32,12 +32,8 @@ impl<'a> System<'a> for CharacterRenderSystem {
         for (render, position) in (&render, &position).join() {
             window.put_char_ex(position.x, position.y, render.c,
                                colors::RED, colors::BLACK);
-
-            println!("{:?} {:?}", render, position);
         }
         // Flush changes
         window.flush();
-
-        window.wait_for_keypress(false);
     }
 }
