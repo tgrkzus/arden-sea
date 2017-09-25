@@ -34,23 +34,23 @@ impl Game {
         // Create entities
         world
             .create_entity()
-            .with(ControllerComponent { controller: Controllers::PLAYER })
+            .with(ControllerComponent { controller: Controllers::Player })
             .with(CharacterPositionComponent { x: 4, y: 4 })
             .with(CharacterRenderComponent { c: '@' })
             .with(TurnStateComponent {
                 vec: (0, 0),
-                action: ActionState::NONE,
+                action: ActionState::None,
             })
             .build();
 
         world
             .create_entity()
-            .with(ControllerComponent { controller: Controllers::ENEMY })
+            .with(ControllerComponent { controller: Controllers::Enemy })
             .with(CharacterPositionComponent { x: 7, y: 8 })
             .with(CharacterRenderComponent { c: 'E' })
             .with(TurnStateComponent {
                 vec: (0, 0),
-                action: ActionState::NONE,
+                action: ActionState::None,
             })
             .build();
 

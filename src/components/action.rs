@@ -22,9 +22,9 @@ impl Component for ControllerComponent {
 
 #[derive(Debug)]
 pub enum Controllers {
-    PASSIVE,
-    PLAYER,
-    ENEMY,
+    Passive,
+    Player,
+    Enemy,
 }
 
 
@@ -40,23 +40,23 @@ impl<'a> System<'a> for ActionControllerSystem {
             println!("{:?}", position);
             println!("{:?}", turn);
             match turn.action {
-                ActionState::NONE => {
+                ActionState::None => {
                     println!("NONE action");
                 }
-                ActionState::MOVE_BY => {
+                ActionState::MoveBy => {
                     println!("MOVE action");
                     position.x += turn.vec.0;
                     position.y += turn.vec.1;
                 }
-                ActionState::MOVE_TO => {
+                ActionState::MoveTo => {
                     println!("MOVE action");
                     position.x = turn.vec.0;
                     position.y = turn.vec.1;
                 }
-                ActionState::EXAMINE => {
+                ActionState::Examine => {
                     println!("EXAMINE action");
                 }
-                ActionState::ATTACK => {
+                ActionState::Attack => {
                     println!("ATTACK action");
                 }
             }
@@ -75,15 +75,15 @@ impl<'a> System<'a> for ActionGeneratorSystem {
 
         for (turn, controller) in (&mut turn, &controller).join() {
             match controller.controller {
-                Controllers::PASSIVE => {
+                Controllers::Passive => {
                     println!("PASSIVE controller");
                     ActionControllerSystem::generate_passive_action(turn);
                 }
-                Controllers::PLAYER => {
+                Controllers::Player => {
                     println!("PLAYER controller");
                     ActionControllerSystem::generate_player_action(turn, &mut console);
                 }
-                Controllers::ENEMY => {
+                Controllers::Enemy => {
                     println!("ENEMY controller");
                     ActionControllerSystem::generate_enemy_action(turn);
                 }
@@ -95,7 +95,7 @@ impl<'a> System<'a> for ActionGeneratorSystem {
 
 impl ActionControllerSystem {
     fn generate_passive_action(turn: &mut TurnStateComponent) {
-        turn.action = ActionState::MOVE_BY;
+        turn.action = ActionState::MoveBy;
         turn.vec = (0, 1);
     }
 
@@ -120,12 +120,12 @@ impl ActionControllerSystem {
             // Stuff
         }
 
-        turn.action = ActionState::MOVE_BY;
+        turn.action = ActionState::MoveBy;
         turn.vec = p;
     }
 
     fn generate_enemy_action(turn: &mut TurnStateComponent) {
-        turn.action = ActionState::MOVE_BY;
+        turn.action = ActionState::MoveBy;
         turn.vec = (1, 1);
    }
 }

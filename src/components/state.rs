@@ -17,16 +17,16 @@ impl Component for TurnStateComponent {
 }
 
 /// Various actions an entity can take
-///     NONE    - Take no action, consume no AP
-///     MOVE_BY - Move by the given vec (i.e. offset)
-///     MOVE_TO - Move to the given vec (i.e. set to vec)
-///     EXAMINE - Examine the given tile
-///     ATTACK  - Attack at the given tile (TODO target WITHIN a tile?)
+///     None    - Take no action, consume no AP
+///     MoveBy  - Move by the given vec (i.e. offset)
+///     MoveTo  - Move to the given vec (i.e. set to vec)
+///     Examine - Examine the given tile
+///     Attack  - Attack at the given tile (TODO target WITHIN a tile?)
 #[derive(Debug)]
 pub enum ActionState {
-    NONE,
-    MOVE_BY,
-    MOVE_TO,
-    EXAMINE,
-    ATTACK,
+    None,
+    MoveBy,
+    MoveTo,
+    Examine,
+    Attack,
 }
