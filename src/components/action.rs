@@ -1,4 +1,9 @@
+use std::process;
+
 extern crate tcod;
+use self::tcod::*;
+use self::tcod::console::Root;
+use self::tcod::input::KeyCode;
 
 extern crate specs;
 use self::specs::{Component, VecStorage, System, WriteStorage, ReadStorage, Fetch, FetchMut, Join};
@@ -54,9 +59,6 @@ impl<'a> System<'a> for ActionControllerSystem {
                 ActionState::ATTACK => {
                     println!("ATTACK action");
                 }
-                _ => {
-                    println!("Default");
-                }
             }
         }
     }
@@ -64,30 +66,66 @@ impl<'a> System<'a> for ActionControllerSystem {
 
 pub struct ActionGeneratorSystem;
 impl<'a> System<'a> for ActionGeneratorSystem {
-    type SystemData = (WriteStorage<'a, TurnStateComponent>, ReadStorage<'a, ControllerComponent>);
+    type SystemData = (WriteStorage<'a, TurnStateComponent>,
+                       ReadStorage<'a, ControllerComponent>,
+                       FetchMut<'a, RootConsole>);
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut turn, controller) = data;
+        let (mut turn, controller, mut console) = data;
 
         for (turn, controller) in (&mut turn, &controller).join() {
             match controller.controller {
                 Controllers::PASSIVE => {
                     println!("PASSIVE controller");
+                    ActionControllerSystem::generate_passive_action(turn);
                 }
                 Controllers::PLAYER => {
                     println!("PLAYER controller");
-                    turn.action = ActionState::MOVE_BY;
-                    turn.vec = (1, 0);
+                    ActionControllerSystem::generate_player_action(turn, &mut console);
                 }
                 Controllers::ENEMY => {
                     println!("ENEMY controller");
-                    turn.action = ActionState::MOVE_BY;
-                    turn.vec = (1, 1);
-                }
-                _ => {
-                    println!("Default");
+                    ActionControllerSystem::generate_enemy_action(turn);
                 }
             }
         }
     }
+
+}
+
+impl ActionControllerSystem {
+    fn generate_passive_action(turn: &mut TurnStateComponent) {
+        turn.action = ActionState::MOVE_BY;
+        turn.vec = (0, 1);
+    }
+
+    fn generate_player_action(turn: &mut TurnStateComponent, console: &mut Root) {
+        let key = (*console).wait_for_keypress(false);
+
+        if key.code == KeyCode::Escape {
+            process::exit(0);
+        }
+
+        let mut p: (i32, i32) = (0, 0);
+        if key.code == KeyCode::Char {
+            match key.printable {
+                'w' => p = (0, -1),
+                'a' => p = (-1, 0),
+                's' => p = (0, 1),
+                'd' => p = (1, 0),
+                _ => println!("Invalid key"),
+            }
+        }
+        else {
+            // Stuff
+        }
+
+        turn.action = ActionState::MOVE_BY;
+        turn.vec = p;
+    }
+
+    fn generate_enemy_action(turn: &mut TurnStateComponent) {
+        turn.action = ActionState::MOVE_BY;
+        turn.vec = (1, 1);
+   }
 }

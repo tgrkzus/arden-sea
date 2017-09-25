@@ -70,6 +70,7 @@ impl Game {
                 "action_controller",
                 &["action_generator"],
             )
+            .add_barrier()
             .build();
 
         // Game loop
@@ -78,7 +79,7 @@ impl Game {
             renderer.dispatch(&mut world.res);
 
             // Get input
-            self.get_input(&mut world);
+            //self.get_input(&mut world);
             //world.add_resource(input);
 
             // Simulate game
@@ -87,11 +88,5 @@ impl Game {
     }
 
     pub fn get_input(&mut self, world: &mut World) {
-        let mut console = world.write_resource::<Root>();
-        let key = (*console).wait_for_keypress(false);
-
-        if key.code == tcod::input::KeyCode::Escape {
-            process::exit(0);
-        }
     }
 }
