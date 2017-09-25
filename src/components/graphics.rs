@@ -28,17 +28,23 @@ impl<'a> System<'a> for RenderSystem {
     type SystemData = (ReadStorage<'a, CharacterRenderComponent>,
      ReadStorage<'a, CharacterPositionComponent>,
      FetchMut<'a, RootConsole>,
-     Fetch<'a, WorldAttributes>,
      Fetch<'a, LogContent>);
 
     fn run(&mut self, data: Self::SystemData) {
-        let (render, position, mut window, attrs, log) = data;
+        let (render, position, mut window, log) = data;
         // Clear
         window.clear();
 
         // Make offscreens
         let mut world_screen = Offscreen::new(WORLD_WINDOW_SIZE.0, WORLD_WINDOW_SIZE.1);
         let mut log_screen = Offscreen::new(LOG_SIZE.0, LOG_SIZE.1);
+
+        // Render floor
+        for x in 0..WORLD_WINDOW_SIZE.0 {
+            for y in 0..WORLD_WINDOW_SIZE.1 {
+                world_screen.put_char_ex(x, y, '.', colors::DARKEST_GREY, colors::BLACK);
+            }
+        }
 
         // Render characters
         for (render, position) in (&render, &position).join() {
