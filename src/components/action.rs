@@ -7,10 +7,11 @@ use self::tcod::input::KeyCode;
 
 extern crate specs;
 use self::specs::{Component, VecStorage, System, WriteStorage, ReadStorage,
-                    Fetch, FetchMut, Join};
+                    Fetch, FetchMut, Join, EntitiesRes};
 
 use components::position::CharacterPositionComponent;
 use components::state::{TurnStateComponent, ActionState};
+use components::tile::{TileComponent, TileType};
 
 #[derive(Debug)]
 pub struct ControllerComponent {
@@ -32,12 +33,19 @@ pub enum Controllers {
 pub struct ActionControllerSystem;
 impl<'a> System<'a> for ActionControllerSystem {
     type SystemData = (WriteStorage<'a, CharacterPositionComponent>,
-     ReadStorage<'a, TurnStateComponent>);
+                       ReadStorage<'a, TurnStateComponent>,
+                       ReadStorage<'a, TileComponent>);
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut position, turn) = data;
+        let (mut positions, turns, tiles) = data;
 
-        for (position, turn) in (&mut position, &turn).join() {
+        let mut occupied: Vec<(TileType, i32, i32)> = Vec::new();
+        for (tile, tPos) in (&tiles, &positions).join() {
+            occupied.push((tile.tile_type.clone(), tPos.x, tPos.y));
+        }
+        println!("{:?}", occupied);
+
+        for (position, turn) in (&mut positions, &turns).join() {
             println!("{:?}", position);
             println!("{:?}", turn);
             match turn.action {
@@ -45,12 +53,23 @@ impl<'a> System<'a> for ActionControllerSystem {
                     println!("NONE action");
                 }
                 ActionState::MoveBy => {
-                    println!("MOVE action");
-                    position.x += turn.vec.0;
-                    position.y += turn.vec.1;
+                    let mut p = (turn.vec.0, turn.vec.1);
+
+                    for tPos in &occupied {
+                        match tPos.0 {
+                            TileType::Impassable => {
+                                if tPos.1 == position.x + p.0 && tPos.2 == position.y + p.1 {
+                                    p = (0, 0);
+                                }
+                            },
+                            _ => { },
+                        }
+                    }
+
+                    position.x += p.0;
+                    position.y += p.1;
                 }
                 ActionState::MoveTo => {
-                    println!("MOVE action");
                     position.x = turn.vec.0;
                     position.y = turn.vec.1;
                 }
@@ -72,9 +91,9 @@ impl<'a> System<'a> for ActionGeneratorSystem {
                        FetchMut<'a, RootConsole>);
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut turn, controller, mut console) = data;
+        let (mut turns, controllers, mut console) = data;
 
-        for (turn, controller) in (&mut turn, &controller).join() {
+        for (turn, controller) in (&mut turns, &controllers).join() {
             match controller.controller {
                 Controllers::Passive => {
                     println!("PASSIVE controller");

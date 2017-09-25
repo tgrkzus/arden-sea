@@ -1,5 +1,4 @@
-use std::process;
-
+use std::process; 
 extern crate tcod;
 use self::tcod::RootConsole;
 use self::tcod::console::Root;
@@ -13,6 +12,7 @@ use components::player::PlayerActionGeneratorSystem;
 use components::graphics::{CharacterRenderSystem, CharacterRenderComponent};
 use components::position::CharacterPositionComponent;
 use components::state::{TurnStateComponent, ActionState};
+use components::tile::{TileComponent, TileType};
 
 #[derive(Clone)]
 pub enum TurnStatus {
@@ -37,6 +37,7 @@ impl Game {
         world.register::<CharacterPositionComponent>();
         world.register::<TurnStateComponent>();
         world.register::<ControllerComponent>();
+        world.register::<TileComponent>();
 
         // Create entities
         world
@@ -59,6 +60,21 @@ impl Game {
                 vec: (0, 0),
                 action: ActionState::None,
             })
+            .build();
+
+        // Tile/walls
+        world
+            .create_entity()
+            .with(CharacterPositionComponent { x: 4, y: 3 })
+            .with(CharacterRenderComponent { c: 'W' })
+            .with(TileComponent { tile_type: TileType::Impassable })
+            .build();
+
+        world
+            .create_entity()
+            .with(CharacterPositionComponent { x: 4, y: 7 })
+            .with(CharacterRenderComponent { c: 'F' })
+            .with(TileComponent { tile_type: TileType::Passable })
             .build();
 
         // Add fetchable resource (Note, this is a move)
