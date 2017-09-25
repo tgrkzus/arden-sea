@@ -11,7 +11,6 @@ use self::specs::{Component, VecStorage, System, WriteStorage, ReadStorage,
 
 use components::position::CharacterPositionComponent;
 use components::state::{TurnStateComponent, ActionState};
-use components::tile::{TileComponent, TileType};
 use game::WorldAttributes;
 
 #[derive(Debug)]
@@ -35,21 +34,13 @@ pub struct ActionControllerSystem;
 impl<'a> System<'a> for ActionControllerSystem {
     type SystemData = (WriteStorage<'a, CharacterPositionComponent>,
                        ReadStorage<'a, TurnStateComponent>,
-                       ReadStorage<'a, TileComponent>,
                        Fetch<'a, WorldAttributes>);
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut positions, turns, tiles, attr) = data;
+        let (mut positions, turns, attr) = data;
 
-        let mut occupied: Vec<(TileType, i32, i32)> = Vec::new();
-        for (tile, tPos) in (&tiles, &positions).join() {
-            occupied.push((tile.tile_type.clone(), tPos.x, tPos.y));
-        }
-        println!("{:?}", occupied);
 
         for (position, turn) in (&mut positions, &turns).join() {
-            println!("{:?}", position);
-            println!("{:?}", turn);
             match turn.action {
                 ActionState::None => {
                     println!("NONE action");
@@ -57,6 +48,7 @@ impl<'a> System<'a> for ActionControllerSystem {
                 ActionState::MoveBy => {
                     let mut newP = (position.x + turn.vec.0, position.y + turn.vec.1);
 
+                    /*
                     for tPos in &occupied {
                         match tPos.0 {
                             TileType::Impassable => {
@@ -67,6 +59,7 @@ impl<'a> System<'a> for ActionControllerSystem {
                             _ => { },
                         }
                     }
+                    */
 
                     if newP.0 < 0 || newP.0 >= attr.size.0 as i32 || newP.1 < 0 || newP.1 >= attr.size.1 as i32 {
                         newP = (position.x, position.y);
@@ -102,15 +95,13 @@ impl<'a> System<'a> for ActionGeneratorSystem {
         for (turn, controller) in (&mut turns, &controllers).join() {
             match controller.controller {
                 Controllers::Passive => {
-                    println!("PASSIVE controller");
                     ActionControllerSystem::generate_passive_action(turn);
                 }
                 Controllers::Player => {
-                    println!("PLAYER controller");
+                    // Action has been pregened!
                     //ActionControllerSystem::generate_player_action(turn, &mut console);
                 }
                 Controllers::Enemy => {
-                    println!("ENEMY controller");
                     ActionControllerSystem::generate_enemy_action(turn);
                 }
             }

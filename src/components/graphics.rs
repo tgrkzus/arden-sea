@@ -6,6 +6,7 @@ use self::tcod::*;
 use self::tcod::console::Offscreen;
 use components::position::*;
 use game::{WorldAttributes, LogContent};
+use world::map::{TileType, Tile, Map};
 
 const WORLD_OFFSET: (i32, i32) = (10, 10);
 const WORLD_WINDOW_SIZE: (i32, i32) = (80, 80);
@@ -28,10 +29,11 @@ impl<'a> System<'a> for RenderSystem {
     type SystemData = (ReadStorage<'a, CharacterRenderComponent>,
      ReadStorage<'a, CharacterPositionComponent>,
      FetchMut<'a, RootConsole>,
-     Fetch<'a, LogContent>);
+     Fetch<'a, LogContent>,
+     Fetch<'a, Map>);
 
     fn run(&mut self, data: Self::SystemData) {
-        let (render, position, mut window, log) = data;
+        let (render, position, mut window, log, map) = data;
         // Clear
         window.clear();
 
@@ -39,10 +41,21 @@ impl<'a> System<'a> for RenderSystem {
         let mut world_screen = Offscreen::new(WORLD_WINDOW_SIZE.0, WORLD_WINDOW_SIZE.1);
         let mut log_screen = Offscreen::new(LOG_SIZE.0, LOG_SIZE.1);
 
-        // Render floor
+        // Render map
         for x in 0..WORLD_WINDOW_SIZE.0 {
             for y in 0..WORLD_WINDOW_SIZE.1 {
-                world_screen.put_char_ex(x, y, '.', colors::DARKEST_GREY, colors::BLACK);
+                match map.get_tile(x as usize, y as usize, 0 as usize) {
+                    Some(tile) => { 
+                        let mut c: char;
+                        match tile.tile_type {
+                            TileType::Wall => c = 'W',
+                            TileType::Ground => c = '.',
+                            TileType::Air => c = ' ',
+                        }
+                        world_screen.put_char_ex(x, y, c, colors::WHITE, colors::BLACK);
+                    },
+                    None => panic!("No tile what"),
+                }
             }
         }
 
@@ -73,7 +86,6 @@ impl RenderSystem {
     fn draw_frame(console: &mut Console, x: i32, y: i32, width: i32, height: i32, color: colors::Color) {
         console.set_default_foreground(color);
         console.horizontal_line(x, y, width, BackgroundFlag::None);
-        println!("{}, {}, {}, {}", x, y, width, height);
         console.horizontal_line(x, y + height, width, BackgroundFlag::None);
 
         console.vertical_line(x, y, height, BackgroundFlag::None);
