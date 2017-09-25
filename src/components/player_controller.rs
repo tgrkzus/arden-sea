@@ -1,6 +1,10 @@
-extern crate specs;
+/*use std::process;
+
 extern crate tcod;
+
+extern crate specs;
 use self::specs::{System, WriteStorage, Fetch, Join};
+
 use components::position::{CharacterPositionComponent};
 use state::{TurnState, ActionState};
 
@@ -27,6 +31,9 @@ impl<'a> System<'a> for PlayerControllerSystem {
                     }
                 }
             }
+            else if c.code == tcod::input::KeyCode::Escape {
+                process::exit(0);
+            }
 
             position.x += p.0;
             position.y += p.1;
@@ -34,3 +41,4 @@ impl<'a> System<'a> for PlayerControllerSystem {
         }
     }
 }
+*/

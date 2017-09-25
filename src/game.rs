@@ -1,3 +1,5 @@
+use std::process;
+
 extern crate tcod;
 use self::tcod::{RootConsole};
 use self::tcod::console::{Root};
@@ -5,10 +7,10 @@ use self::tcod::console::{Root};
 extern crate specs;
 use self::specs::{World, DispatcherBuilder};
 
-use components::player_controller::{PlayerControllerSystem};
+use components::action::{ActionControllerSystem, ActionGeneratorSystem};
 use components::graphics::{CharacterRenderSystem, CharacterRenderComponent};
 use components::position::{CharacterPositionComponent};
-use state::{TurnState, ActionState};
+use components::state::{TurnStateComponent, ActionState};
 
 pub struct Game;
 
@@ -28,11 +30,13 @@ impl Game {
         // Register
         world.register::<CharacterRenderComponent>();
         world.register::<CharacterPositionComponent>();
+        world.register::<TurnStateComponent>();
 
         // Create entities
         world.create_entity()
             .with(CharacterPositionComponent { x: 4, y: 4 })
             .with(CharacterRenderComponent { c: '@' })
+            .with(TurnStateComponent { vec: (0, 0), action: ActionState::NONE })
             .build();
 
         // Add fetchable resource (Note, this is a move)
@@ -45,7 +49,8 @@ impl Game {
 
         // Simulator dispatcher
         let mut simulator = DispatcherBuilder::new()
-            .add_thread_local(PlayerControllerSystem)
+            .add(ActionGeneratorSystem, "action_generator", &[])
+            .add(ActionControllerSystem, "action_controller", &["action_generator"])
             .build();
 
         // Game loop (with initial draw)
@@ -54,19 +59,20 @@ impl Game {
             renderer.dispatch(&mut world.res);
 
             // Get input
-            let input = self.get_input(&mut world);
-            world.add_resource(input);
+            self.get_input(&mut world);
+            //world.add_resource(input);
 
             // Simulate game
             simulator.dispatch(&mut world.res);
         }
     }
 
-    pub fn get_input(&mut self, world: &mut World) -> TurnState {
+    pub fn get_input(&mut self, world: &mut World) {
         let mut console = world.write_resource::<Root>();
-        return TurnState {
-            key: (*console).wait_for_keypress(false),
-            action: ActionState::NORMAL,
-        };
+        let key = (*console).wait_for_keypress(false);
+
+        if key.code == tcod::input::KeyCode::Escape {
+            process::exit(0);
+        }
     }
 }
