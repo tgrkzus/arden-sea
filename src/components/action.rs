@@ -113,11 +113,44 @@ impl ActionControllerSystem {
                 'a' => p = (-1, 0),
                 's' => p = (0, 1),
                 'd' => p = (1, 0),
-                _ => println!("Invalid key"),
+                _ => { },
             }
         }
         else {
-            // Stuff
+            match key.code {
+                KeyCode::NumPad1 => {
+                    p = (-1, 1);
+                },
+                KeyCode::NumPad2 => {
+                    p = (0, 1);
+                },
+                KeyCode::NumPad3=> {
+                    p = (1, 1);
+                },
+
+                KeyCode::NumPad4 => {
+                    p = (-1, 0);
+                },
+                KeyCode::NumPad5 => {
+                    // Wait action?
+                    p = (0, 0);
+                },
+                KeyCode::NumPad6 => {
+                    p = (1, 0);
+                },
+
+                KeyCode::NumPad7 => {
+                    p = (-1, -1);
+                },
+                KeyCode::NumPad8 => {
+                    // Wait action?
+                    p = (0, -1);
+                },
+                KeyCode::NumPad9 => {
+                    p = (1, -1);
+                },
+                _ => { },
+            }
         }
 
         turn.action = ActionState::MoveBy;
@@ -126,6 +159,6 @@ impl ActionControllerSystem {
 
     fn generate_enemy_action(turn: &mut TurnStateComponent) {
         turn.action = ActionState::MoveBy;
-        turn.vec = (1, 1);
+        turn.vec = (0 0);
    }
 }
