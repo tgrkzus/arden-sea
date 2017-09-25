@@ -7,7 +7,7 @@ use self::tcod::console::{Root};
 extern crate specs;
 use self::specs::{World, DispatcherBuilder};
 
-use components::action::{ActionControllerSystem, ActionGeneratorSystem};
+use components::action::{ActionControllerSystem, ActionGeneratorSystem, ControllerComponent, Controllers};
 use components::graphics::{CharacterRenderSystem, CharacterRenderComponent};
 use components::position::{CharacterPositionComponent};
 use components::state::{TurnStateComponent, ActionState};
@@ -31,11 +31,20 @@ impl Game {
         world.register::<CharacterRenderComponent>();
         world.register::<CharacterPositionComponent>();
         world.register::<TurnStateComponent>();
+        world.register::<ControllerComponent>();
 
         // Create entities
         world.create_entity()
+            .with(ControllerComponent { controller: Controllers::PLAYER })
             .with(CharacterPositionComponent { x: 4, y: 4 })
             .with(CharacterRenderComponent { c: '@' })
+            .with(TurnStateComponent { vec: (0, 0), action: ActionState::NONE })
+            .build();
+
+        world.create_entity()
+            .with(ControllerComponent { controller: Controllers::ENEMY })
+            .with(CharacterPositionComponent { x: 7, y: 8 })
+            .with(CharacterRenderComponent { c: 'E' })
             .with(TurnStateComponent { vec: (0, 0), action: ActionState::NONE })
             .build();
 
@@ -53,7 +62,7 @@ impl Game {
             .add(ActionControllerSystem, "action_controller", &["action_generator"])
             .build();
 
-        // Game loop (with initial draw)
+        // Game loop
         loop {
             // Draw game
             renderer.dispatch(&mut world.res);
