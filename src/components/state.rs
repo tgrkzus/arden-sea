@@ -30,4 +30,3 @@ pub enum ActionState {
     EXAMINE,
     ATTACK,
 }
-

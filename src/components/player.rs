@@ -3,7 +3,7 @@ extern crate tcod;
 extern crate specs;
 use self::specs::{System, WriteStorage, ReadStorage, Fetch, FetchMut, Join};
 
-use components::position::{CharacterPositionComponent};
+use components::position::CharacterPositionComponent;
 use components::state::{TurnStateComponent, ActionState};
 
 /*

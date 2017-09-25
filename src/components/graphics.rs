@@ -18,8 +18,8 @@ impl Component for CharacterRenderComponent {
 pub struct CharacterRenderSystem;
 impl<'a> System<'a> for CharacterRenderSystem {
     type SystemData = (ReadStorage<'a, CharacterRenderComponent>,
-                       ReadStorage<'a, CharacterPositionComponent>,
-                       FetchMut<'a, RootConsole>);
+     ReadStorage<'a, CharacterPositionComponent>,
+     FetchMut<'a, RootConsole>);
 
     fn run(&mut self, data: Self::SystemData) {
         let (render, position, mut window) = data;
@@ -30,8 +30,7 @@ impl<'a> System<'a> for CharacterRenderSystem {
         // process input
 
         for (render, position) in (&render, &position).join() {
-            window.put_char_ex(position.x, position.y, render.c,
-                               colors::RED, colors::BLACK);
+            window.put_char_ex(position.x, position.y, render.c, colors::RED, colors::BLACK);
         }
         // Flush changes
         window.flush();

@@ -17,4 +17,3 @@ pub struct CharacterPositionComponent {
 impl Component for CharacterPositionComponent {
     type Storage = VecStorage<Self>;
 }
-

@@ -1,30 +1,28 @@
 use std::process;
 
 extern crate tcod;
-use self::tcod::{RootConsole};
-use self::tcod::console::{Root};
+use self::tcod::RootConsole;
+use self::tcod::console::Root;
 
 extern crate specs;
 use self::specs::{World, DispatcherBuilder};
 
-use components::action::{ActionControllerSystem, ActionGeneratorSystem, ControllerComponent, Controllers};
+use components::action::{ActionControllerSystem, ActionGeneratorSystem, ControllerComponent,
+                         Controllers};
 use components::graphics::{CharacterRenderSystem, CharacterRenderComponent};
-use components::position::{CharacterPositionComponent};
+use components::position::CharacterPositionComponent;
 use components::state::{TurnStateComponent, ActionState};
 
 pub struct Game;
 
 impl Game {
     pub fn new() -> Self {
-        return Self { };
+        return Self {};
     }
 
     pub fn run(&mut self) {
-        let window: Root = RootConsole::initializer()
-            .size(80, 80)
-            .title("Game")
-            .init();
-    
+        let window: Root = RootConsole::initializer().size(80, 80).title("Game").init();
+
         let mut world = World::new();
 
         // Register
@@ -34,24 +32,32 @@ impl Game {
         world.register::<ControllerComponent>();
 
         // Create entities
-        world.create_entity()
+        world
+            .create_entity()
             .with(ControllerComponent { controller: Controllers::PLAYER })
             .with(CharacterPositionComponent { x: 4, y: 4 })
             .with(CharacterRenderComponent { c: '@' })
-            .with(TurnStateComponent { vec: (0, 0), action: ActionState::NONE })
+            .with(TurnStateComponent {
+                vec: (0, 0),
+                action: ActionState::NONE,
+            })
             .build();
 
-        world.create_entity()
+        world
+            .create_entity()
             .with(ControllerComponent { controller: Controllers::ENEMY })
             .with(CharacterPositionComponent { x: 7, y: 8 })
             .with(CharacterRenderComponent { c: 'E' })
-            .with(TurnStateComponent { vec: (0, 0), action: ActionState::NONE })
+            .with(TurnStateComponent {
+                vec: (0, 0),
+                action: ActionState::NONE,
+            })
             .build();
 
         // Add fetchable resource (Note, this is a move)
         world.add_resource(window);
 
-        // Render dispatcher 
+        // Render dispatcher
         let mut renderer = DispatcherBuilder::new()
             .add_thread_local(CharacterRenderSystem)
             .build();
@@ -59,7 +65,11 @@ impl Game {
         // Simulator dispatcher
         let mut simulator = DispatcherBuilder::new()
             .add(ActionGeneratorSystem, "action_generator", &[])
-            .add(ActionControllerSystem, "action_controller", &["action_generator"])
+            .add(
+                ActionControllerSystem,
+                "action_controller",
+                &["action_generator"],
+            )
             .build();
 
         // Game loop
