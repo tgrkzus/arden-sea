@@ -6,7 +6,8 @@ use self::tcod::console::Root;
 use self::tcod::input::KeyCode;
 
 extern crate specs;
-use self::specs::{Component, VecStorage, System, WriteStorage, ReadStorage, Fetch, FetchMut, Join};
+use self::specs::{Component, VecStorage, System, WriteStorage, ReadStorage,
+                    Fetch, FetchMut, Join};
 
 use components::position::CharacterPositionComponent;
 use components::state::{TurnStateComponent, ActionState};
@@ -81,7 +82,7 @@ impl<'a> System<'a> for ActionGeneratorSystem {
                 }
                 Controllers::Player => {
                     println!("PLAYER controller");
-                    ActionControllerSystem::generate_player_action(turn, &mut console);
+                    //ActionControllerSystem::generate_player_action(turn, &mut console);
                 }
                 Controllers::Enemy => {
                     println!("ENEMY controller");
@@ -99,66 +100,8 @@ impl ActionControllerSystem {
         turn.vec = (0, 1);
     }
 
-    fn generate_player_action(turn: &mut TurnStateComponent, console: &mut Root) {
-        let key = (*console).wait_for_keypress(false);
-
-        if key.code == KeyCode::Escape {
-            process::exit(0);
-        }
-
-        let mut p: (i32, i32) = (0, 0);
-        if key.code == KeyCode::Char {
-            match key.printable {
-                'w' => p = (0, -1),
-                'a' => p = (-1, 0),
-                's' => p = (0, 1),
-                'd' => p = (1, 0),
-                _ => { },
-            }
-        }
-        else {
-            match key.code {
-                KeyCode::NumPad1 => {
-                    p = (-1, 1);
-                },
-                KeyCode::NumPad2 => {
-                    p = (0, 1);
-                },
-                KeyCode::NumPad3=> {
-                    p = (1, 1);
-                },
-
-                KeyCode::NumPad4 => {
-                    p = (-1, 0);
-                },
-                KeyCode::NumPad5 => {
-                    // Wait action?
-                    p = (0, 0);
-                },
-                KeyCode::NumPad6 => {
-                    p = (1, 0);
-                },
-
-                KeyCode::NumPad7 => {
-                    p = (-1, -1);
-                },
-                KeyCode::NumPad8 => {
-                    // Wait action?
-                    p = (0, -1);
-                },
-                KeyCode::NumPad9 => {
-                    p = (1, -1);
-                },
-                _ => { },
-            }
-        }
-
-        turn.action = ActionState::MoveBy;
-        turn.vec = p;
-    }
-
     fn generate_enemy_action(turn: &mut TurnStateComponent) {
         turn.action = ActionState::MoveBy;
-        turn.vec = (0 0);
+        turn.vec = (0, 0);
    }
 }
