@@ -5,7 +5,7 @@ extern crate tcod;
 use self::tcod::*;
 use self::tcod::console::Offscreen;
 use components::position::*;
-use game::WorldAttributes;
+use game::{WorldAttributes, LogContent};
 
 const WORLD_OFFSET: (i32, i32) = (10, 10);
 const WORLD_WINDOW_SIZE: (i32, i32) = (80, 80);
@@ -28,10 +28,11 @@ impl<'a> System<'a> for RenderSystem {
     type SystemData = (ReadStorage<'a, CharacterRenderComponent>,
      ReadStorage<'a, CharacterPositionComponent>,
      FetchMut<'a, RootConsole>,
-     Fetch<'a, WorldAttributes>);
+     Fetch<'a, WorldAttributes>,
+     Fetch<'a, LogContent>);
 
     fn run(&mut self, data: Self::SystemData) {
-        let (render, position, mut window, attrs) = data;
+        let (render, position, mut window, attrs, log) = data;
         // Clear
         window.clear();
 
@@ -51,8 +52,7 @@ impl<'a> System<'a> for RenderSystem {
 
 
         // Write to log
-        log_screen.print_rect(0, 0, LOG_SIZE.0, LOG_SIZE.1,
-                              "Hey some text is here!\nWith a new line!");
+        log_screen.print_rect(0, 0, LOG_SIZE.0, LOG_SIZE.1, log.content.join("\n"));
 
         // Log window frame + blitting
         RenderSystem::draw_frame(&mut *window, LOG_OFFSET.0 - 1, LOG_OFFSET.1 - 1, LOG_SIZE.0 + 1, LOG_SIZE.1 + 1, colors::DESATURATED_FLAME);

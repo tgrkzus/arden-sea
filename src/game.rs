@@ -25,6 +25,12 @@ pub struct WorldAttributes {
     pub size: (i32, i32),
 }
 
+/// TODO move?
+#[derive(Debug)]
+pub struct LogContent {
+    pub content: Vec<String>,
+}
+
 pub struct Game;
 
 impl Game {
@@ -87,6 +93,7 @@ impl Game {
         world.add_resource(window);
         world.add_resource(TurnStatus::FAIL);
         world.add_resource(WorldAttributes { size: (80, 80), });
+        world.add_resource(LogContent { content: vec!["Hey some text is here!".to_string(), "With a new line!".to_string(), "And some other stuff ay".to_string()] });
 
         // Render dispatcher
         let mut renderer = DispatcherBuilder::new()
