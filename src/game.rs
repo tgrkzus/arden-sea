@@ -22,7 +22,7 @@ pub enum TurnStatus {
 
 #[derive(Debug)]
 pub struct WorldAttributes {
-    pub size: (u32, u32),
+    pub size: (i32, i32),
 }
 
 pub struct Game;
