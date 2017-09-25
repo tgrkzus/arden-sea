@@ -12,6 +12,7 @@ use self::specs::{Component, VecStorage, System, WriteStorage, ReadStorage,
 use components::position::CharacterPositionComponent;
 use components::state::{TurnStateComponent, ActionState};
 use components::tile::{TileComponent, TileType};
+use game::WorldAttributes;
 
 #[derive(Debug)]
 pub struct ControllerComponent {
@@ -34,10 +35,11 @@ pub struct ActionControllerSystem;
 impl<'a> System<'a> for ActionControllerSystem {
     type SystemData = (WriteStorage<'a, CharacterPositionComponent>,
                        ReadStorage<'a, TurnStateComponent>,
-                       ReadStorage<'a, TileComponent>);
+                       ReadStorage<'a, TileComponent>,
+                       Fetch<'a, WorldAttributes>);
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut positions, turns, tiles) = data;
+        let (mut positions, turns, tiles, attr) = data;
 
         let mut occupied: Vec<(TileType, i32, i32)> = Vec::new();
         for (tile, tPos) in (&tiles, &positions).join() {
@@ -53,21 +55,25 @@ impl<'a> System<'a> for ActionControllerSystem {
                     println!("NONE action");
                 }
                 ActionState::MoveBy => {
-                    let mut p = (turn.vec.0, turn.vec.1);
+                    let mut newP = (position.x + turn.vec.0, position.y + turn.vec.1);
 
                     for tPos in &occupied {
                         match tPos.0 {
                             TileType::Impassable => {
-                                if tPos.1 == position.x + p.0 && tPos.2 == position.y + p.1 {
-                                    p = (0, 0);
+                                if tPos.1 == newP.0 && tPos.2 == newP.1 {
+                                    newP = (position.x, position.y);
                                 }
                             },
                             _ => { },
                         }
                     }
 
-                    position.x += p.0;
-                    position.y += p.1;
+                    if newP.0 < 0 || newP.0 >= attr.size.0 as i32 || newP.1 < 0 || newP.1 >= attr.size.1 as i32 {
+                        newP = (position.x, position.y);
+                    }
+
+                    position.x = newP.0;
+                    position.y = newP.1;
                 }
                 ActionState::MoveTo => {
                     position.x = turn.vec.0;

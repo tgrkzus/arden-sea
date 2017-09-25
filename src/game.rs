@@ -9,7 +9,7 @@ use self::specs::{World, DispatcherBuilder, RunNow};
 use components::action::{ActionControllerSystem, ActionGeneratorSystem, ControllerComponent,
                          Controllers};
 use components::player::PlayerActionGeneratorSystem;
-use components::graphics::{CharacterRenderSystem, CharacterRenderComponent};
+use components::graphics::{RenderSystem, CharacterRenderComponent};
 use components::position::CharacterPositionComponent;
 use components::state::{TurnStateComponent, ActionState};
 use components::tile::{TileComponent, TileType};
@@ -20,6 +20,11 @@ pub enum TurnStatus {
     FAIL,
 }
 
+#[derive(Debug)]
+pub struct WorldAttributes {
+    pub size: (u32, u32),
+}
+
 pub struct Game;
 
 impl Game {
@@ -28,7 +33,8 @@ impl Game {
     }
 
     pub fn run(&mut self) {
-        let window: Root = RootConsole::initializer().size(80, 80).title("Game").init();
+
+        let window: Root = RootConsole::initializer().size(160, 100).title("Game").init();
 
         let mut world = World::new();
 
@@ -80,10 +86,11 @@ impl Game {
         // Add fetchable resource (Note, this is a move)
         world.add_resource(window);
         world.add_resource(TurnStatus::FAIL);
+        world.add_resource(WorldAttributes { size: (80, 80), });
 
         // Render dispatcher
         let mut renderer = DispatcherBuilder::new()
-            .add_thread_local(CharacterRenderSystem)
+            .add_thread_local(RenderSystem)
             .build();
 
         // Simulator dispatcher
