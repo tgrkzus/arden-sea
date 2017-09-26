@@ -55,6 +55,21 @@ impl PlayerActionGeneratorSystem {
                 }
             },
 
+            // Attack action
+            InputStatus::Attack => {
+                match Self::check_directions(key) {
+                    // Process and move
+                    Some(p) => {
+                        turn.action = ActionState::Attack;
+                        turn.direction = p;
+                        return InputStatus::Ok;
+                    }
+                    // Do nothing if no value
+                    None => { 
+                    },
+                }
+            },
+
             // Normal action
             _ => {
 
@@ -105,6 +120,11 @@ impl PlayerActionGeneratorSystem {
                     status = InputStatus::Examine;
                 }
 
+                // Attack
+                'a' => {
+                    status = InputStatus::Attack;
+                }
+
                 // No key found
                 _ => { 
                     return None; 
@@ -130,10 +150,12 @@ impl PlayerActionGeneratorSystem {
         let p: Direction; 
         if key.code == KeyCode::Char {
             match key.printable {
+                /*
                 'w' => p = Direction::N,
                 'a' => p = Direction::W,
                 's' => p = Direction::S,
                 'd' => p = Direction::E,
+                */
                 _ => { return None; },
             }
         }

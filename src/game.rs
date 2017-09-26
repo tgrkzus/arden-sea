@@ -42,6 +42,7 @@ use world::map::{Tile, TileType, Map};
 pub enum InputStatus {
     Ok,
     Examine,
+    Attack,
     Fail,
 }
 
@@ -54,6 +55,12 @@ pub struct WorldAttributes {
 #[derive(Debug)]
 pub struct LogContent {
     pub content: Vec<String>,
+}
+
+impl LogContent {
+    pub fn add_message(&mut self, message: String) {
+        self.content.push(message);
+    }
 }
 
 pub struct Game;

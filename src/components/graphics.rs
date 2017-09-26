@@ -77,7 +77,9 @@ impl<'a> System<'a> for RenderSystem {
             },
             InputStatus::Examine => {
                 status = "Examine".to_string();
-
+            },
+            InputStatus::Attack => {
+                status = "Attack".to_string();
             },
             InputStatus::Fail => {
                 status = "Invalid Input".to_string();

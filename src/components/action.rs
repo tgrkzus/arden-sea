@@ -11,7 +11,7 @@ use self::specs::{Component, VecStorage, System, WriteStorage, ReadStorage,
 
 use components::position::CharacterPositionComponent;
 use components::state::{TurnStateComponent, ActionState};
-use game::WorldAttributes;
+use game::{WorldAttributes, LogContent};
 
 use world::map::{TileType, Tile, Map};
 
@@ -50,10 +50,11 @@ impl<'a> System<'a> for ActionControllerSystem {
     type SystemData = (WriteStorage<'a, CharacterPositionComponent>,
                        ReadStorage<'a, TurnStateComponent>,
                        Fetch<'a, WorldAttributes>,
-                       FetchMut<'a, Map>);
+                       FetchMut<'a, Map>,
+                       FetchMut<'a, LogContent>);
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut positions, turns, attr, mut map) = data;
+        let (mut positions, turns, attr, mut map, mut log) = data;
 
 
         for (position, turn) in (&mut positions, &turns).join() {
@@ -86,12 +87,35 @@ impl<'a> System<'a> for ActionControllerSystem {
                 ActionState::Examine => {
                     let mut new = Self::add_direction(&(position.x, position.y), &turn.direction);
 
+                    let mut result: String = "There's nothing here".to_string();
                     if Self::check_valid_coords(new.0, new.1, 0, &attr) {
-                        map.set_tile(Tile { tile_type: TileType::Wall, }, new.0 as usize, new.1 as usize, 0);
+                        match map.get_tile(new.0 as usize, new.1 as usize, 0).unwrap().tile_type {
+                            TileType::Wall => {
+                                result = "This is a wall".to_string();
+                            }
+                            TileType::Air => {
+                                result = "This is an empty space".to_string();
+                            }
+                            TileType::Ground => { 
+                                result = "There's some ground here".to_string();
+                            },
+                        }
                     }
+                    log.add_message(result);
                 }
                 ActionState::Attack => {
-                    println!("ATTACK action");
+                    let mut new = Self::add_direction(&(position.x, position.y), &turn.direction);
+                    if Self::check_valid_coords(new.0, new.1, 0, &attr) {
+                        match map.get_tile(new.0 as usize, new.1 as usize, 0).unwrap().tile_type {
+                            TileType::Wall => {
+                                map.set_tile(Tile { tile_type: TileType::Ground, }, new.0 as usize, new.1 as usize, 0);
+                                log.add_message("You hit the wall. Destroying it!".to_string());
+                            },
+                            _ => {
+                                log.add_message("You vigorously swing at nothing".to_string());
+                            },
+                        }
+                    }
                 }
             }
         }
