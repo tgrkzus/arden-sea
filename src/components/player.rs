@@ -33,26 +33,104 @@ impl<'a> System<'a> for PlayerActionGeneratorSystem {
             }
         }
     }
-
 }
 
 impl PlayerActionGeneratorSystem {
     fn generate_player_action(turn: &mut TurnStateComponent, console: &mut Root, status: InputStatus) -> InputStatus {
         let key = (*console).wait_for_keypress(false);
 
-        if key.code == KeyCode::Escape {
-            process::exit(0);
+        match status {
+            // Examine action
+            InputStatus::Examine => {
+                match Self::check_directions(key) {
+                    // Process and move
+                    Some(p) => {
+                        turn.action = ActionState::Examine;
+                        turn.vec = p;
+                        return InputStatus::Ok;
+                    }
+                    // Do nothing if no value
+                    None => { 
+                    },
+                }
+            },
+
+            // Normal action
+            _ => {
+
+                // Exit check (TODO disable)
+                if key.code == KeyCode::Escape {
+                    process::exit(0);
+                }
+
+                // Check for directions
+                match Self::check_directions(key) {
+                    // Process and move
+                    Some(p) => {
+                        turn.action = ActionState::MoveBy;
+                        turn.vec = p;
+                        return InputStatus::Ok;
+                    }
+                    // Do nothing if no value
+                    None => { 
+                    },
+                }
+
+                match Self::check_state_keys(key) {
+                    // Set our returned state
+                    Some(new_state) => {
+                        return new_state;
+                    }
+                    // Do nothing if no value
+                    None => { 
+                    },
+                }
+            }
+        }
+        // If we get here we've got no valid input
+        return InputStatus::Fail;
+    }
+
+
+    fn check_state_keys(key: tcod::input::Key) -> Option<InputStatus> {
+        let status: InputStatus;
+        if key.code == KeyCode::Char {
+            match key.printable {
+                // Examine
+                'e' => {
+                    status = InputStatus::Examine;
+                }
+
+                // No key found
+                _ => { 
+                    return None; 
+                },
+            }
+        }
+        else {
+            match key.code {
+                _ => {
+                    return None;
+                },
+            }
         }
 
-        let mut p: (i32, i32) = (0, 0);
+        return Some(status);
+    }
+
+    /// Checks the given key input for movement keys.
+    ///
+    /// Returns (x, y) movement direction (TODO Cardinal enum?)
+    ///         None if no valid key
+    fn check_directions(key: tcod::input::Key) -> Option<(i32, i32)> {
+        let p: (i32, i32);
         if key.code == KeyCode::Char {
             match key.printable {
                 'w' => p = (0, -1),
                 'a' => p = (-1, 0),
                 's' => p = (0, 1),
                 'd' => p = (1, 0),
-                'e' => return InputStatus::Examine,
-                _ => { return InputStatus::Fail; },
+                _ => { return None; },
             }
         }
         else {
@@ -87,21 +165,9 @@ impl PlayerActionGeneratorSystem {
                 KeyCode::NumPad9 => {
                     p = (1, -1);
                 },
-                _ => { return InputStatus::Fail; },
+                _ => { return None; },
             }
         }
-
-        match status {
-            InputStatus::Examine => {
-                turn.action = ActionState::Examine;
-                turn.vec = p;
-                return InputStatus::Ok;
-            },
-            _ => {
-                turn.action = ActionState::MoveBy;
-                turn.vec = p;
-                return InputStatus::Ok;
-            }
-        }
+        return Some(p);
     }
 }
