@@ -13,14 +13,14 @@ use components::position::CharacterPositionComponent;
 use components::state::{TurnStateComponent, ActionState};
 use components::action::{ControllerComponent, Controllers};
 
-use game::TurnStatus;
+use game::InputStatus;
 
 pub struct PlayerActionGeneratorSystem;
 impl<'a> System<'a> for PlayerActionGeneratorSystem {
     type SystemData = (WriteStorage<'a, TurnStateComponent>,
                        ReadStorage<'a, ControllerComponent>,
                        FetchMut<'a, RootConsole>,
-                       FetchMut<'a, TurnStatus>);
+                       FetchMut<'a, InputStatus>);
 
     fn run(&mut self, data: Self::SystemData) {
         let (mut turn, controller, mut console, mut status) = data;
@@ -29,10 +29,10 @@ impl<'a> System<'a> for PlayerActionGeneratorSystem {
             match controller.controller {
                 Controllers::Player => {
                     if PlayerActionGeneratorSystem::generate_player_action(turn, &mut console) {
-                        *status = TurnStatus::OK;
+                        *status = InputStatus::Ok;
                     }
                     else {
-                        *status = TurnStatus::FAIL;
+                        *status = InputStatus::Fail;
                     }
                 }
                 _ => { },

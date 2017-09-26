@@ -15,10 +15,37 @@ use components::state::{TurnStateComponent, ActionState};
 
 use world::map::{Tile, TileType, Map};
 
+/// The input status.
+/// This describes what state the player acting is in,
+/// and is checked to see if we need to get more player input
+/// or should just simulate the game.
+///
+/// For example if the status is Ok we simulate the game
+///             if the status is Fail we recieved invalid input
+///             
+///             Other statuses indicated we want to take an action but required
+///             more information. E.g. we want to examine but need a target now.
+///             The concept of this is so we have a chance to visually update the game
+///             and perform various checks outside of the PlayerActionGeneratorSystem.
+///
+///             The turn status should always describe the status of the Player entities
+///             ActionState and state information like (Who should we attack) should never be
+///             contained within this struct. All actors within the game can take all actions the
+///             players take and should all follow the same logic for the best simulation. The
+///             TurnStatus only describes the input state!
+///
+///             The turn status can also describe menu state. Such as a player being in and
+///             inventory. Which can then be visual displayed appropriately. Actions such as
+///             dropping items or using items should still be encompassed within the ActionState
+///             though!
+///
+///             This status should be reset to None to reset input state
 #[derive(Clone)]
-pub enum TurnStatus {
-    OK,
-    FAIL,
+pub enum InputStatus {
+    None,
+    Ok,
+    Examine,
+    Fail,
 }
 
 #[derive(Debug)]
@@ -39,8 +66,7 @@ impl Game {
         return Self {};
     }
 
-    pub fn run(&mut self) {
-
+    pub fn run(&mut self) { 
         let window: Root = RootConsole::initializer().size(160, 100).title("Game").init();
 
         let mut world = World::new();
@@ -76,9 +102,9 @@ impl Game {
 
         // Add fetchable resource (Note, this is a move)
         world.add_resource(window);
-        world.add_resource(TurnStatus::FAIL);
         world.add_resource(WorldAttributes { size: (80, 80), });
         world.add_resource(LogContent { content: vec!["Welcome to the world!".to_string()] , });
+        Self::reset_input_status(&mut world);
 
 
         let mut map = Map::new(80, 80, 5);
@@ -115,21 +141,39 @@ impl Game {
 
             let status = self.get_input(&mut world);
             match status {
-                TurnStatus::OK => {
+                InputStatus::Ok => {
                     // Simulate game
                     simulator.dispatch(&mut world.res);
+
+                    // Game has been simulated reset input state
+                    Game::reset_input_status(&mut world);
                 },
-                _ => { println!("Invalid input"); },
+
+                InputStatus::Fail => { 
+                    println!("Invalid input");
+
+                    // Invalid input so we reset the input state
+                    Game::reset_input_status(&mut world);
+                },
+
+                // Do nothing if we have another status. The renderer system should then dispatch
+                // and this will allow the renderer to read the turn status and do various gui
+                // related things (I.e. visually ask more input)
+               _ => {}
             }
         }
     }
 
-    pub fn get_input(&mut self, world: &mut World) -> TurnStatus {
+    pub fn get_input(&mut self, world: &mut World) -> InputStatus {
         // Run the PlayerActionGeneratorSystem
         let mut system = PlayerActionGeneratorSystem;
         system.run_now(&world.res);
 
-        // Borrow, deref and clone the current turn status
-        return (*(world.read_resource::<TurnStatus>())).clone();
+        // Borrow, deref and clone the current input status
+        return (*(world.read_resource::<InputStatus>())).clone();
+    }
+
+    fn reset_input_status(world: &mut World) {
+        world.add_resource(InputStatus::None);
     }
 }
