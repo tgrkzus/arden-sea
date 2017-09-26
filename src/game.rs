@@ -38,11 +38,8 @@ use world::map::{Tile, TileType, Map};
 ///             inventory. Which can then be visual displayed appropriately. Actions such as
 ///             dropping items or using items should still be encompassed within the ActionState
 ///             though!
-///
-///             This status should be reset to None to reset input state
 #[derive(Clone)]
 pub enum InputStatus {
-    None,
     Ok,
     Examine,
     Fail,
@@ -148,14 +145,11 @@ impl Game {
                     simulator.dispatch(&mut world.res);
 
                     // Game has been simulated reset input state
-                    Game::reset_input_status(&mut world);
+                    //Game::reset_input_status(&mut world);
                 },
 
                 InputStatus::Fail => { 
                     println!("Invalid input");
-
-                    // Invalid input so we reset the input state
-                    Game::reset_input_status(&mut world);
                 },
 
                 // Do nothing if we have another status. The renderer system should then dispatch
@@ -175,7 +169,8 @@ impl Game {
         return (*(world.read_resource::<InputStatus>())).clone();
     }
 
+    /// Reset input status to default Ok
     fn reset_input_status(world: &mut World) {
-        world.add_resource(InputStatus::None);
+        world.add_resource(InputStatus::Ok);
     }
 }

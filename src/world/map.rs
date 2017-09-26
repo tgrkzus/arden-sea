@@ -25,13 +25,16 @@ impl Map {
         let mut vec: Vec<Tile> = Vec::with_capacity(width * height * depth);
 
         let perlin = Perlin::new();
-        perlin.set_seed(133213);
+
+        // TODO set seed
+        perlin.set_seed(1204012);
+
         for i in 0..vec.capacity() {
             let x = i / (height * depth);
             let y = (i - x * height * depth) / depth;
             let z = i - x * height * depth - y * depth;
 
-            let modifier = 1000.0;
+            let modifier = 900.0;
             let n = perlin.get([
                                x as f32 / width as f32 * modifier, 
                                y as f32 / height as f32 * modifier, 
@@ -39,7 +42,7 @@ impl Map {
 
             //println!("{} {} {}: {}", x, y, z, n);
             let tile: Tile;
-            if (n > 0.8) {
+            if n > 0.8 {
                 tile = Tile { tile_type: TileType::Wall };
             }
             else {

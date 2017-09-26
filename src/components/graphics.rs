@@ -5,7 +5,7 @@ extern crate tcod;
 use self::tcod::*;
 use self::tcod::console::Offscreen;
 use components::position::*;
-use game::{WorldAttributes, LogContent};
+use game::{WorldAttributes, LogContent, InputStatus};
 use world::map::{TileType, Tile, Map};
 
 const WORLD_OFFSET: (i32, i32) = (10, 10);
@@ -30,10 +30,15 @@ impl<'a> System<'a> for RenderSystem {
      ReadStorage<'a, CharacterPositionComponent>,
      FetchMut<'a, RootConsole>,
      Fetch<'a, LogContent>,
-     Fetch<'a, Map>);
+     Fetch<'a, Map>,
+     Fetch<'a, InputStatus>);
 
     fn run(&mut self, data: Self::SystemData) {
-        let (render, position, mut window, log, map) = data;
+        let (render, position, mut window, log, map, input_status) = data;
+
+        window.set_default_foreground(colors::WHITE);
+        window.set_default_background(colors::BLACK);
+
         // Clear
         window.clear();
 
@@ -62,6 +67,25 @@ impl<'a> System<'a> for RenderSystem {
         RenderSystem::draw_frame(&mut *window, LOG_OFFSET.0 - 1, LOG_OFFSET.1 - 1, LOG_SIZE.0 + 1, LOG_SIZE.1 + 1, colors::DESATURATED_BLUE);
         tcod::console::blit(&log_screen, (0, 0), LOG_SIZE,
                       &mut (*window), LOG_OFFSET, 1.0, 1.0);
+
+        // Draw input status bar
+        window.set_default_foreground(colors::WHITE);
+        let status: String;
+        match *input_status {
+            InputStatus::Ok => {
+                status = "Ok".to_string();
+            },
+            InputStatus::Examine => {
+                status = "Examine".to_string();
+
+            },
+            InputStatus::Fail => {
+                status = "Invalid Input".to_string();
+                window.set_default_background(colors::RED);
+            },
+        }
+        window.print_ex(WORLD_OFFSET.0, WORLD_OFFSET.1 + WORLD_WINDOW_SIZE.1 + 1, BackgroundFlag::Set, TextAlignment::Left, status);
+        
         // Flush changes
         window.flush();
     }
@@ -79,7 +103,7 @@ impl RenderSystem {
                         let mut background: colors::Color;
                         match tile.tile_type {
                             TileType::Wall => {
-                                c = 'W';
+                                c = tcod::chars::BLOCK2;
                                 foreground = colors::GREY;
                                 background = colors::BLACK;
                             }
