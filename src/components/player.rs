@@ -28,14 +28,8 @@ impl<'a> System<'a> for PlayerActionGeneratorSystem {
         for (turn, controller) in (&mut turn, &controller).join() {
             match controller.controller {
                 Controllers::Player => {
-                    if PlayerActionGeneratorSystem::generate_player_action(turn, &mut console) {
-                        *status = InputStatus::Ok;
-                    }
-                    else {
-                        *status = InputStatus::Fail;
-                    }
-                }
-                _ => { },
+                    *status = PlayerActionGeneratorSystem::generate_player_action(turn, &mut console, (*status).clone())
+                }, _ => { },
             }
         }
     }
@@ -43,7 +37,7 @@ impl<'a> System<'a> for PlayerActionGeneratorSystem {
 }
 
 impl PlayerActionGeneratorSystem {
-    fn generate_player_action(turn: &mut TurnStateComponent, console: &mut Root) -> bool {
+    fn generate_player_action(turn: &mut TurnStateComponent, console: &mut Root, status: InputStatus) -> InputStatus {
         let key = (*console).wait_for_keypress(false);
 
         if key.code == KeyCode::Escape {
@@ -57,7 +51,8 @@ impl PlayerActionGeneratorSystem {
                 'a' => p = (-1, 0),
                 's' => p = (0, 1),
                 'd' => p = (1, 0),
-                _ => { return false; },
+                'e' => return InputStatus::Examine,
+                _ => { return InputStatus::Fail; },
             }
         }
         else {
@@ -92,12 +87,21 @@ impl PlayerActionGeneratorSystem {
                 KeyCode::NumPad9 => {
                     p = (1, -1);
                 },
-                _ => { return false; },
+                _ => { return InputStatus::Fail; },
             }
         }
 
-        turn.action = ActionState::MoveBy;
-        turn.vec = p;
-        return true;
+        match status {
+            InputStatus::Examine => {
+                turn.action = ActionState::Examine;
+                turn.vec = p;
+                return InputStatus::Ok;
+            },
+            _ => {
+                turn.action = ActionState::MoveBy;
+                turn.vec = p;
+                return InputStatus::Ok;
+            }
+        }
     }
 }
