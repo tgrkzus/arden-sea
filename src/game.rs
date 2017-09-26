@@ -108,12 +108,14 @@ impl Game {
 
 
         let mut map = Map::new(80, 80, 5);
+        /*
         map.set_tile(Tile { tile_type: TileType::Wall }, 4, 5, 0);
         map.set_tile(Tile { tile_type: TileType::Wall }, 5, 4, 0);
         map.set_tile(Tile { tile_type: TileType::Wall }, 6, 4, 0);
         map.set_tile(Tile { tile_type: TileType::Wall }, 4, 8, 0);
 
         map.set_tile(Tile { tile_type: TileType::Air }, 8, 8, 0);
+        */
         world.add_resource(map);
 
         // Render dispatcher

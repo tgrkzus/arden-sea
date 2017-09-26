@@ -1,9 +1,11 @@
+extern crate noise;
+use self::noise::{NoiseModule, Perlin, Seedable};
+
 #[derive(Debug)]
 pub enum TileType {
     Wall,
     Ground,
-    Air,
-}
+    Air, }
 
 #[derive(Debug)]
 pub struct Tile {
@@ -22,8 +24,28 @@ impl Map {
     pub fn new(width: usize, height: usize, depth: usize) -> Self {
         let mut vec: Vec<Tile> = Vec::with_capacity(width * height * depth);
 
-        for _ in 0..vec.capacity() {
-            vec.push(Tile { tile_type: TileType::Ground } );
+        let perlin = Perlin::new();
+        perlin.set_seed(133213);
+        for i in 0..vec.capacity() {
+            let x = i / (height * depth);
+            let y = (i - x * height * depth) / depth;
+            let z = i - x * height * depth - y * depth;
+
+            let modifier = 1000.0;
+            let n = perlin.get([
+                               x as f32 / width as f32 * modifier, 
+                               y as f32 / height as f32 * modifier, 
+                               z as f32 / depth as f32 * modifier]);
+
+            //println!("{} {} {}: {}", x, y, z, n);
+            let tile: Tile;
+            if (n > 0.8) {
+                tile = Tile { tile_type: TileType::Wall };
+            }
+            else {
+                tile = Tile { tile_type: TileType::Ground };
+            }
+                vec.push(tile);
         }
 
         return Self { 
