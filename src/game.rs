@@ -7,7 +7,7 @@ extern crate specs;
 use self::specs::{World, DispatcherBuilder, RunNow};
 
 use components::action::{ActionControllerSystem, ActionGeneratorSystem, ControllerComponent,
-                         Controllers};
+                         Controllers, Direction};
 use components::player::PlayerActionGeneratorSystem;
 use components::graphics::{RenderSystem, CharacterRenderComponent};
 use components::position::CharacterPositionComponent;
@@ -81,7 +81,7 @@ impl Game {
             .with(CharacterPositionComponent { x: 4, y: 4 })
             .with(CharacterRenderComponent { c: '@' })
             .with(TurnStateComponent {
-                vec: (0, 0),
+                direction: Direction::None,
                 action: ActionState::None,
             })
             .build();
@@ -92,7 +92,7 @@ impl Game {
             .with(CharacterPositionComponent { x: 7, y: 8 })
             .with(CharacterRenderComponent { c: 'E' })
             .with(TurnStateComponent {
-                vec: (0, 0),
+                direction: Direction::None,
                 action: ActionState::None,
             })
             .build();

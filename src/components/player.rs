@@ -11,7 +11,7 @@ use self::specs::{Component, VecStorage, System, WriteStorage, ReadStorage,
 
 use components::position::CharacterPositionComponent;
 use components::state::{TurnStateComponent, ActionState};
-use components::action::{ControllerComponent, Controllers};
+use components::action::{ControllerComponent, Controllers, Direction};
 
 use game::InputStatus;
 
@@ -46,7 +46,7 @@ impl PlayerActionGeneratorSystem {
                     // Process and move
                     Some(p) => {
                         turn.action = ActionState::Examine;
-                        turn.vec = p;
+                        turn.direction = p;
                         return InputStatus::Ok;
                     }
                     // Do nothing if no value
@@ -68,7 +68,7 @@ impl PlayerActionGeneratorSystem {
                     // Process and move
                     Some(p) => {
                         turn.action = ActionState::MoveBy;
-                        turn.vec = p;
+                        turn.direction = p;
                         return InputStatus::Ok;
                     }
                     // Do nothing if no value
@@ -92,6 +92,10 @@ impl PlayerActionGeneratorSystem {
     }
 
 
+    /// Checks our state transition keys (i.e. multiple input required)
+    /// Examples include:   Examining (which is followed by a direction)
+    ///                     Opening a menu (e.g. Inventory)
+    ///                     Attacking
     fn check_state_keys(key: tcod::input::Key) -> Option<InputStatus> {
         let status: InputStatus;
         if key.code == KeyCode::Char {
@@ -120,50 +124,50 @@ impl PlayerActionGeneratorSystem {
 
     /// Checks the given key input for movement keys.
     ///
-    /// Returns (x, y) movement direction (TODO Cardinal enum?)
+    /// Returns movement direction
     ///         None if no valid key
-    fn check_directions(key: tcod::input::Key) -> Option<(i32, i32)> {
-        let p: (i32, i32);
+    fn check_directions(key: tcod::input::Key) -> Option<Direction> {
+        let p: Direction; 
         if key.code == KeyCode::Char {
             match key.printable {
-                'w' => p = (0, -1),
-                'a' => p = (-1, 0),
-                's' => p = (0, 1),
-                'd' => p = (1, 0),
+                'w' => p = Direction::N,
+                'a' => p = Direction::W,
+                's' => p = Direction::S,
+                'd' => p = Direction::E,
                 _ => { return None; },
             }
         }
         else {
             match key.code {
                 KeyCode::NumPad1 => {
-                    p = (-1, 1);
+                    p = Direction::SW;
                 },
                 KeyCode::NumPad2 => {
-                    p = (0, 1);
+                    p = Direction::S;
                 },
                 KeyCode::NumPad3 => {
-                    p = (1, 1);
+                    p = Direction::SE;
                 },
 
                 KeyCode::NumPad4 => {
-                    p = (-1, 0);
+                    p = Direction::W;
                 },
                 KeyCode::NumPad5 => {
                     // Wait action?
-                    p = (0, 0);
+                    p = Direction::None;
                 },
                 KeyCode::NumPad6 => {
-                    p = (1, 0);
+                    p = Direction::E;
                 },
 
                 KeyCode::NumPad7 => {
-                    p = (-1, -1);
+                    p = Direction::NW;
                 },
                 KeyCode::NumPad8 => {
-                    p = (0, -1);
+                    p = Direction::N;
                 },
                 KeyCode::NumPad9 => {
-                    p = (1, -1);
+                    p = Direction::NE;
                 },
                 _ => { return None; },
             }
