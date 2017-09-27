@@ -57,96 +57,76 @@ impl<'a> System<'a> for ActionControllerSystem {
         let (mut positions, turns, attr, mut map, mut log) = data;
 
 
-        for (position, turn) in (&mut positions, &turns).join() {
-            match turn.action {
-                ActionState::None => {
-                    println!("NONE action");
-                }
-                ActionState::MoveBy => {
-                    let mut new = Self::add_direction(&(position.x, position.y), &turn.direction);
-                    
-                    // Check world bounds
-                    if !Self::check_valid_coords(new.0, new.1, 0, &attr) {
-                        new = (position.x, position.y);
-                    }
+        for (position, turn) in (&mut positions, &turns).join().filter(|&(_, ref turn)| turn.action == ActionState::None) {
+            println!("NONE action");
+        }
 
-                    // Check collisions
-                    match map.get_tile(new.0 as usize, new.1 as usize, 0).unwrap().tile_type {
-                        TileType::Wall | TileType::Air => new = (position.x, position.y),
-                        TileType::Ground => { },
-                    }
+        for (position, turn) in (&mut positions, &turns).join().filter(|&(_, ref turn)| turn.action == ActionState::MoveBy) {
+            let mut new = Self::add_direction(&(position.x, position.y), &turn.direction);
+
+            // Check world bounds
+            if !Self::check_valid_coords(new.0, new.1, 0, &attr) {
+                new = (position.x, position.y);
+            }
+
+            // Check collisions
+            match map.get_tile(new.0 as usize, new.1 as usize, 0).unwrap().tile_type {
+                TileType::Wall | TileType::Air => new = (position.x, position.y),
+                TileType::Ground => { },
+            }
 
 
-                    position.x = new.0;
-                    position.y = new.1;
-                }
-                ActionState::MoveTo => {
-                    //position.x = turn.vec.0;
-                    //position.y = turn.vec.1;
-                }
-                ActionState::Examine => {
-                    let mut new = Self::add_direction(&(position.x, position.y), &turn.direction);
+            position.x = new.0;
+            position.y = new.1;
+        }
 
-                    let mut result: String = "There's nothing here".to_string();
-                    if Self::check_valid_coords(new.0, new.1, 0, &attr) {
-                        match map.get_tile(new.0 as usize, new.1 as usize, 0).unwrap().tile_type {
-                            TileType::Wall => {
-                                result = "This is a wall".to_string();
-                            }
-                            TileType::Air => {
-                                result = "This is an empty space".to_string();
-                            }
-                            TileType::Ground => { 
-                                result = "There's some ground here".to_string();
-                            },
-                        }
+        for (position, turn) in (&mut positions, &turns).join().filter(|&(_, ref turn)| turn.action == ActionState::MoveTo) {
+            //position.x = turn.vec.0;
+            //position.y = turn.vec.1;
+        }
+
+        for (position, turn) in (&mut positions, &turns).join().filter(|&(_, ref turn)| turn.action == ActionState::Examine) {
+            let mut new = Self::add_direction(&(position.x, position.y), &turn.direction);
+
+            let mut result: String = "There's nothing here".to_string();
+            if Self::check_valid_coords(new.0, new.1, 0, &attr) {
+                match map.get_tile(new.0 as usize, new.1 as usize, 0).unwrap().tile_type {
+                    TileType::Wall => {
+                        result = "This is a wall".to_string();
                     }
-                    log.add_message(result);
+                    TileType::Air => {
+                        result = "This is an empty space".to_string();
+                    }
+                    TileType::Ground => { 
+                        result = "There's some ground here".to_string();
+                    },
                 }
-                ActionState::Attack => {
-                    let mut new = Self::add_direction(&(position.x, position.y), &turn.direction);
-                    if Self::check_valid_coords(new.0, new.1, 0, &attr) {
-                        match map.get_tile(new.0 as usize, new.1 as usize, 0).unwrap().tile_type {
-                            TileType::Wall => {
-                                map.set_tile(Tile { tile_type: TileType::Ground, }, new.0 as usize, new.1 as usize, 0);
-                                log.add_message("You hit the wall. Destroying it!".to_string());
-                            },
-                            _ => {
-                                log.add_message("You vigorously swing at nothing".to_string());
-                            },
-                        }
-                    }
+            }
+
+            /*
+               for e_pos in (&positions).join() {
+               }
+               */
+
+            log.add_message(result);
+        }
+
+        for (position, turn) in (&mut positions, &turns).join().filter(|&(_, ref turn)| turn.action == ActionState::Attack) {
+            let mut new = Self::add_direction(&(position.x, position.y), &turn.direction);
+            if Self::check_valid_coords(new.0, new.1, 0, &attr) {
+                match map.get_tile(new.0 as usize, new.1 as usize, 0).unwrap().tile_type {
+                    TileType::Wall => {
+                        map.set_tile(Tile { tile_type: TileType::Ground, }, new.0 as usize, new.1 as usize, 0);
+                        log.add_message("You hit the wall. Destroying it!".to_string());
+                    },
+                    _ => {
+                        log.add_message("You vigorously swing at nothing".to_string());
+                    },
                 }
             }
         }
+
     }
-}
-
-pub struct ActionGeneratorSystem;
-impl<'a> System<'a> for ActionGeneratorSystem {
-    type SystemData = (WriteStorage<'a, TurnStateComponent>,
-                       ReadStorage<'a, ControllerComponent>,
-                       FetchMut<'a, RootConsole>);
-
-    fn run(&mut self, data: Self::SystemData) {
-        let (mut turns, controllers, mut console) = data;
-
-        for (turn, controller) in (&mut turns, &controllers).join() {
-            match controller.controller {
-                Controllers::Passive => {
-                    ActionControllerSystem::generate_passive_action(turn);
-                }
-                Controllers::Player => {
-                    // Action has been pregened!
-                    //ActionControllerSystem::generate_player_action(turn, &mut console);
-                }
-                Controllers::Enemy => {
-                    ActionControllerSystem::generate_enemy_action(turn);
-                }
-            }
-        }
-    }
-
 }
 
 impl ActionControllerSystem {
@@ -202,3 +182,31 @@ impl ActionControllerSystem {
         turn.direction = Direction::None;
    }
 }
+
+pub struct ActionGeneratorSystem;
+impl<'a> System<'a> for ActionGeneratorSystem {
+    type SystemData = (WriteStorage<'a, TurnStateComponent>,
+                       ReadStorage<'a, ControllerComponent>,
+                       FetchMut<'a, RootConsole>);
+
+    fn run(&mut self, data: Self::SystemData) {
+        let (mut turns, controllers, mut console) = data;
+
+        for (turn, controller) in (&mut turns, &controllers).join() {
+            match controller.controller {
+                Controllers::Passive => {
+                    ActionControllerSystem::generate_passive_action(turn);
+                }
+                Controllers::Player => {
+                    // Action has been pregened!
+                    //ActionControllerSystem::generate_player_action(turn, &mut console);
+                }
+                Controllers::Enemy => {
+                    ActionControllerSystem::generate_enemy_action(turn);
+                }
+            }
+        }
+    }
+
+}
+

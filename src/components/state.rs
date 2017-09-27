@@ -23,7 +23,7 @@ impl Component for TurnStateComponent {
 ///     MoveTo  - Move to the given vec (i.e. set to vec)
 ///     Examine - Examine the given tile
 ///     Attack  - Attack at the given tile (TODO target WITHIN a tile?)
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum ActionState {
     None,
     MoveBy,
