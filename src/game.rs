@@ -42,6 +42,7 @@ use world::map::{Tile, TileType, Map};
 #[derive(Clone)]
 pub enum InputStatus {
     Ok,
+    Target,
     Examine,
     Attack,
     Fail,

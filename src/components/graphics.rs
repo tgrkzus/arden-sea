@@ -75,6 +75,9 @@ impl<'a> System<'a> for RenderSystem {
             InputStatus::Ok => {
                 status = "Ok".to_string();
             },
+            InputStatus::Target => {
+                status = "Target".to_string();
+            },
             InputStatus::Examine => {
                 status = "Examine".to_string();
             },

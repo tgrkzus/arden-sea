@@ -42,16 +42,15 @@ impl<'a> System<'a> for PlayerActionGeneratorSystem {
 }
 
 impl PlayerActionGeneratorSystem {
-        /*
-        for (e_pos, e_info) in (&positions, &infos).join().filter(|&(ref x, _)| (x.x, x.y) == new) {
-            if new == (e_pos.x, e_pos.y) {
-                entities.push(e_info.name.clone());
-            }
-        }
-        */
-
     fn check_input(key: &tcod::input::Key, mut turn: &mut TurnStateComponent, mut new_status: &mut InputStatus, status: &InputStatus) {
         match *status {
+            // Target action
+            InputStatus::Target => {
+                //let dir = turn.direction;
+
+                // Get existing target GUI and get input that we use to update said state!
+            }
+
             // Examine action
             InputStatus::Examine => {
                 match Self::check_directions(&key) {
@@ -59,7 +58,9 @@ impl PlayerActionGeneratorSystem {
                     Some(p) => {
                         turn.action = ActionState::Examine;
                         turn.direction = p;
-                        *new_status = InputStatus::Ok;
+
+                        // Build target GUI ?? TODO
+                        *new_status = InputStatus::Target;
                     }
                     // Do nothing if no value
                     None => { 
