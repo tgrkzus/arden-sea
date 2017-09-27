@@ -12,6 +12,7 @@ use components::player::PlayerActionGeneratorSystem;
 use components::graphics::{RenderSystem, CharacterRenderComponent};
 use components::position::CharacterPositionComponent;
 use components::state::{TurnStateComponent, ActionState};
+use components::information::{InformationComponent};
 
 use world::map::{Tile, TileType, Map};
 
@@ -80,6 +81,7 @@ impl Game {
         world.register::<CharacterPositionComponent>();
         world.register::<TurnStateComponent>();
         world.register::<ControllerComponent>();
+        world.register::<InformationComponent>();
 
         // Create entities
         world
@@ -91,6 +93,10 @@ impl Game {
                 direction: Direction::None,
                 action: ActionState::None,
             })
+            .with(InformationComponent {
+                name: "The Player".to_string(),
+                description: "This is the player!".to_string(),
+            })
             .build();
 
         world
@@ -101,6 +107,10 @@ impl Game {
             .with(TurnStateComponent {
                 direction: Direction::None,
                 action: ActionState::None,
+            })
+            .with(InformationComponent {
+                name: "An enemy".to_string(),
+                description: "This thing wants to kill you!".to_string(),
             })
             .build();
 

@@ -11,6 +11,7 @@ use self::specs::{Component, VecStorage, System, WriteStorage, ReadStorage,
 
 use components::position::CharacterPositionComponent;
 use components::state::{TurnStateComponent, ActionState};
+use components::information::{InformationComponent};
 use game::{WorldAttributes, LogContent};
 
 use world::map::{TileType, Tile, Map};
@@ -49,12 +50,13 @@ pub struct ActionControllerSystem;
 impl<'a> System<'a> for ActionControllerSystem {
     type SystemData = (WriteStorage<'a, CharacterPositionComponent>,
                        ReadStorage<'a, TurnStateComponent>,
+                       ReadStorage<'a, InformationComponent>,
                        Fetch<'a, WorldAttributes>,
                        FetchMut<'a, Map>,
                        FetchMut<'a, LogContent>);
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut positions, turns, attr, mut map, mut log) = data;
+        let (mut positions, turns, infos, attr, mut map, mut log) = data;
 
 
         for turn in (&turns).join().filter(|&ref turn| turn.action == ActionState::None) {
@@ -103,14 +105,24 @@ impl<'a> System<'a> for ActionControllerSystem {
                 }
             }
 
-            for e_pos in (&positions).join().filter(|&x| x != position) {
+            let mut entities: Vec<String> = Vec::new(); 
+            for (e_pos, e_info) in (&positions, &infos).join().filter(|&(ref x, _)| (x.x, x.y) == new) {
                 if new == (e_pos.x, e_pos.y) {
-                    println!("{:?}", e_pos);
+                    entities.push(e_info.name.clone());
+                }
+            }
+
+            if !entities.is_empty() {
+                result = "There is: ".to_owned();
+                let iter = entities.iter();
+                for name in iter.enumerate() {
+                    result.push_str(((&name.1)).to_owned());
+                    result.push_str(", ");
                 }
             }
 
             log.add_message(result);
-        }
+    }
 
         for (position, turn) in (&positions, &turns).join().filter(|&(_, ref turn)| turn.action == ActionState::Attack) {
             let mut new = Self::add_direction(&(position.x, position.y), &turn.direction);
