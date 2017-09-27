@@ -12,6 +12,7 @@ use self::specs::{Component, VecStorage, System, WriteStorage, ReadStorage,
 use components::position::CharacterPositionComponent;
 use components::state::{TurnStateComponent, ActionState};
 use components::action::{ControllerComponent, Controllers, Direction};
+use components::information::{InformationComponent};
 
 use game::InputStatus;
 
@@ -19,35 +20,46 @@ pub struct PlayerActionGeneratorSystem;
 impl<'a> System<'a> for PlayerActionGeneratorSystem {
     type SystemData = (WriteStorage<'a, TurnStateComponent>,
                        ReadStorage<'a, ControllerComponent>,
+                       ReadStorage<'a, CharacterPositionComponent>,
+                       ReadStorage<'a, InformationComponent>,
                        FetchMut<'a, RootConsole>,
                        FetchMut<'a, InputStatus>);
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut turn, controller, mut console, mut status) = data;
+        let (mut turns, controller, positions, infos, mut console, mut status) = data;
+        
+        // We assume our input failed and maybe prove otherwise!
+        let mut new_status = InputStatus::Fail;
 
-        for (turn, controller) in (&mut turn, &controller).join() {
-            match controller.controller {
-                Controllers::Player => {
-                    *status = PlayerActionGeneratorSystem::generate_player_action(turn, &mut console, (*status).clone())
-                }, _ => { },
-            }
+        for (mut turn, controller) in (&mut turns, &controller).join().filter(|&(_, c)| c.controller == Controllers::Player) {
+            let key = (*console).wait_for_keypress(false);
+
+            Self::check_input(&key, &mut turn, &mut new_status, &status);
         }
+        // Set our new status
+        *status = new_status;
     }
 }
 
 impl PlayerActionGeneratorSystem {
-    fn generate_player_action(turn: &mut TurnStateComponent, console: &mut Root, status: InputStatus) -> InputStatus {
-        let key = (*console).wait_for_keypress(false);
+        /*
+        for (e_pos, e_info) in (&positions, &infos).join().filter(|&(ref x, _)| (x.x, x.y) == new) {
+            if new == (e_pos.x, e_pos.y) {
+                entities.push(e_info.name.clone());
+            }
+        }
+        */
 
-        match status {
+    fn check_input(key: &tcod::input::Key, mut turn: &mut TurnStateComponent, mut new_status: &mut InputStatus, status: &InputStatus) {
+        match *status {
             // Examine action
             InputStatus::Examine => {
-                match Self::check_directions(key) {
+                match Self::check_directions(&key) {
                     // Process and move
                     Some(p) => {
                         turn.action = ActionState::Examine;
                         turn.direction = p;
-                        return InputStatus::Ok;
+                        *new_status = InputStatus::Ok;
                     }
                     // Do nothing if no value
                     None => { 
@@ -57,61 +69,57 @@ impl PlayerActionGeneratorSystem {
 
             // Attack action
             InputStatus::Attack => {
-                match Self::check_directions(key) {
+                match Self::check_directions(&key) {
                     // Process and move
                     Some(p) => {
                         turn.action = ActionState::Attack;
                         turn.direction = p;
-                        return InputStatus::Ok;
+                        *new_status = InputStatus::Ok;
                     }
                     // Do nothing if no value
                     None => { 
                     },
                 }
             },
-
-            // Normal action
-            _ => {
-
-                // Exit check (TODO disable)
-                if key.code == KeyCode::Escape {
-                    process::exit(0);
-                }
-
-                // Check for directions
-                match Self::check_directions(key) {
-                    // Process and move
-                    Some(p) => {
-                        turn.action = ActionState::MoveBy;
-                        turn.direction = p;
-                        return InputStatus::Ok;
-                    }
-                    // Do nothing if no value
-                    None => { 
-                    },
-                }
-
-                match Self::check_state_keys(key) {
-                    // Set our returned state
-                    Some(new_state) => {
-                        return new_state;
-                    }
-                    // Do nothing if no value
-                    None => { 
-                    },
-                }
-            }
+            _ => Self::perform_normal_action(&key, &mut turn, &mut new_status),
         }
-        // If we get here we've got no valid input
-        return InputStatus::Fail;
     }
 
+    fn perform_normal_action(key: &tcod::input::Key, turn: &mut TurnStateComponent, new_status: &mut InputStatus) {
+        // Exit check (TODO disable)
+        if key.code == KeyCode::Escape {
+            process::exit(0);
+        }
+
+        // Check for directions
+        match Self::check_directions(key) {
+            // Process and move
+            Some(p) => {
+                turn.action = ActionState::MoveBy;
+                turn.direction = p;
+                *new_status = InputStatus::Ok;
+            }
+            // Do nothing if no value
+            None => { 
+            },
+        }
+
+        match Self::check_state_keys(key) {
+            // Set our returned state
+            Some(new_state) => {
+                *new_status = new_state;
+            }
+            // Do nothing if no value
+            None => { 
+            },
+        }
+    }
 
     /// Checks our state transition keys (i.e. multiple input required)
     /// Examples include:   Examining (which is followed by a direction)
     ///                     Opening a menu (e.g. Inventory)
     ///                     Attacking
-    fn check_state_keys(key: tcod::input::Key) -> Option<InputStatus> {
+    fn check_state_keys(key: &tcod::input::Key) -> Option<InputStatus> {
         let status: InputStatus;
         if key.code == KeyCode::Char {
             match key.printable {
@@ -146,16 +154,16 @@ impl PlayerActionGeneratorSystem {
     ///
     /// Returns movement direction
     ///         None if no valid key
-    fn check_directions(key: tcod::input::Key) -> Option<Direction> {
+    fn check_directions(key: &tcod::input::Key) -> Option<Direction> {
         let p: Direction; 
         if key.code == KeyCode::Char {
             match key.printable {
                 /*
-                'w' => p = Direction::N,
-                'a' => p = Direction::W,
-                's' => p = Direction::S,
-                'd' => p = Direction::E,
-                */
+                   'w' => p = Direction::N,
+                   'a' => p = Direction::W,
+                   's' => p = Direction::S,
+                   'd' => p = Direction::E,
+                   */
                 _ => { return None; },
             }
         }

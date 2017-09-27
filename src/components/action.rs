@@ -25,14 +25,14 @@ impl Component for ControllerComponent {
     type Storage = VecStorage<Self>;
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Controllers {
     Passive,
     Player,
     Enemy,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Direction {
     N,
     E,
@@ -126,19 +126,8 @@ impl<'a> System<'a> for ActionControllerSystem {
 
         for (position, turn) in (&positions, &turns).join().filter(|&(_, ref turn)| turn.action == ActionState::Attack) {
             let mut new = Self::add_direction(&(position.x, position.y), &turn.direction);
-            if Self::check_valid_coords(new.0, new.1, 0, &attr) {
-                match map.get_tile(new.0 as usize, new.1 as usize, 0).unwrap().tile_type {
-                    TileType::Wall => {
-                        map.set_tile(Tile { tile_type: TileType::Ground, }, new.0 as usize, new.1 as usize, 0);
-                        log.add_message("You hit the wall. Destroying it!".to_string());
-                    },
-                    _ => {
-                        log.add_message("You vigorously swing at nothing".to_string());
-                    },
-                }
-            }
+            log.add_message("You hit the wall. Destroying it!".to_string());
         }
-
     }
 }
 
