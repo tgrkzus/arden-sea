@@ -57,7 +57,7 @@ impl<'a> System<'a> for ActionControllerSystem {
         let (mut positions, turns, attr, mut map, mut log) = data;
 
 
-        for (position, turn) in (&mut positions, &turns).join().filter(|&(_, ref turn)| turn.action == ActionState::None) {
+        for turn in (&turns).join().filter(|&ref turn| turn.action == ActionState::None) {
             println!("NONE action");
         }
 
@@ -85,7 +85,7 @@ impl<'a> System<'a> for ActionControllerSystem {
             //position.y = turn.vec.1;
         }
 
-        for (position, turn) in (&mut positions, &turns).join().filter(|&(_, ref turn)| turn.action == ActionState::Examine) {
+        for (position, turn) in (&positions, &turns).join().filter(|&(_, ref turn)| turn.action == ActionState::Examine) {
             let mut new = Self::add_direction(&(position.x, position.y), &turn.direction);
 
             let mut result: String = "There's nothing here".to_string();
@@ -103,15 +103,16 @@ impl<'a> System<'a> for ActionControllerSystem {
                 }
             }
 
-            /*
-               for e_pos in (&positions).join() {
-               }
-               */
+            for e_pos in (&positions).join().filter(|&x| x != position) {
+                if new == (e_pos.x, e_pos.y) {
+                    println!("{:?}", e_pos);
+                }
+            }
 
             log.add_message(result);
         }
 
-        for (position, turn) in (&mut positions, &turns).join().filter(|&(_, ref turn)| turn.action == ActionState::Attack) {
+        for (position, turn) in (&positions, &turns).join().filter(|&(_, ref turn)| turn.action == ActionState::Attack) {
             let mut new = Self::add_direction(&(position.x, position.y), &turn.direction);
             if Self::check_valid_coords(new.0, new.1, 0, &attr) {
                 match map.get_tile(new.0 as usize, new.1 as usize, 0).unwrap().tile_type {

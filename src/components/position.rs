@@ -8,7 +8,7 @@ use self::tcod::input::*;
 
 use components::*;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct CharacterPositionComponent {
     pub x: i32,
     pub y: i32,
