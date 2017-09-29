@@ -31,7 +31,7 @@ impl<'a> System<'a> for RenderSystem {
      FetchMut<'a, RootConsole>,
      Fetch<'a, LogContent>,
      Fetch<'a, Map>,
-     Fetch<'a, InputStatus>);
+     Fetch<'a, InputStatus<'a> >);
 
     fn run(&mut self, data: Self::SystemData) {
         let (render, position, mut window, log, map, input_status) = data;

@@ -46,13 +46,13 @@ use world::map::{Tile, TileType, Map};
 ///             There's also a Gui status which wraps a Gui object to be drawn on top of the world
 ///             (after all other rendering is done)
 #[derive(Clone)]
-pub enum InputStatus {
+pub enum InputStatus <'a> {
     Ok,
-    Gui { gui: Gui },
     Target,
     Examine,
     Attack,
     Fail,
+    Gui { gui: &'a Gui },
 }
 
 #[derive(Debug)]

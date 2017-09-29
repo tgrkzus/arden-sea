@@ -26,7 +26,7 @@ impl<'a> System<'a> for PlayerActionGeneratorSystem {
                        ReadStorage<'a, CharacterPositionComponent>,
                        ReadStorage<'a, InformationComponent>,
                        FetchMut<'a, RootConsole>,
-                       FetchMut<'a, InputStatus>);
+                       FetchMut<'a, InputStatus<'a>>);
 
     fn run(&mut self, data: Self::SystemData) {
         let (mut turns, controller, positions, infos, mut console, mut status) = data;

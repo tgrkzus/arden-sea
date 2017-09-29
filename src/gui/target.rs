@@ -9,6 +9,7 @@ use components::graphics::RenderSystem;
 
 use std::marker::Sized;
 
+#[derive(Debug, Clone)]
 pub struct TargetGui {
     title: String,
 }
