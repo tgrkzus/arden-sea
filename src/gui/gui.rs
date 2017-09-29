@@ -3,7 +3,7 @@ use self::tcod::{RootConsole};
 use self::tcod::input::{Key};
 use game::InputStatus;
 
-pub trait Gui {
+pub trait Gui : Clone + Sized {
     fn new(title: String) -> Self;
 
     fn set_title(&mut self, title: String);

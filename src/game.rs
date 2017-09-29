@@ -1,4 +1,5 @@
 use std::process; 
+
 extern crate tcod;
 use self::tcod::RootConsole;
 use self::tcod::console::Root;
@@ -13,6 +14,8 @@ use components::graphics::{RenderSystem, CharacterRenderComponent};
 use components::position::CharacterPositionComponent;
 use components::state::{TurnStateComponent, ActionState};
 use components::information::{InformationComponent};
+use gui::gui::{Gui};
+use gui::target::TargetGui;
 
 use world::map::{Tile, TileType, Map};
 
@@ -39,9 +42,13 @@ use world::map::{Tile, TileType, Map};
 ///             inventory. Which can then be visual displayed appropriately. Actions such as
 ///             dropping items or using items should still be encompassed within the ActionState
 ///             though!
+///
+///             There's also a Gui status which wraps a Gui object to be drawn on top of the world
+///             (after all other rendering is done)
 #[derive(Clone)]
 pub enum InputStatus {
     Ok,
+    Gui { gui: Gui },
     Target,
     Examine,
     Attack,

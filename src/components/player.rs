@@ -14,6 +14,9 @@ use components::state::{TurnStateComponent, ActionState};
 use components::action::{ControllerComponent, Controllers, Direction};
 use components::information::{InformationComponent};
 
+use gui::gui::{Gui};
+use gui::target::{TargetGui};
+
 use game::InputStatus;
 
 pub struct PlayerActionGeneratorSystem;

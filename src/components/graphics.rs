@@ -88,6 +88,7 @@ impl<'a> System<'a> for RenderSystem {
                 status = "Invalid Input".to_string();
                 window.set_default_background(colors::RED);
             },
+            _ => status = "Idk".to_string(),
         }
         window.print_ex(WORLD_OFFSET.0, WORLD_OFFSET.1 + WORLD_WINDOW_SIZE.1 + 1, BackgroundFlag::Set, TextAlignment::Left, status);
         
@@ -132,7 +133,7 @@ impl RenderSystem {
 
     }
 
-    fn draw_frame(console: &mut Console, x: i32, y: i32, width: i32, height: i32, color: colors::Color) {
+    pub fn draw_frame(console: &mut Console, x: i32, y: i32, width: i32, height: i32, color: colors::Color) {
         console.set_default_foreground(color);
         console.horizontal_line(x, y, width, BackgroundFlag::None);
         console.horizontal_line(x, y + height, width, BackgroundFlag::None);

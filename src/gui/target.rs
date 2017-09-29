@@ -1,9 +1,13 @@
 extern crate tcod;
 use self::tcod::{RootConsole};
+use self::tcod::console::{Offscreen};
 use self::tcod::input::{Key, KeyCode};
 
 use game::InputStatus;
 use gui::gui::{Gui};
+use components::graphics::RenderSystem;
+
+use std::marker::Sized;
 
 pub struct TargetGui {
     title: String,
@@ -29,6 +33,9 @@ impl Gui for TargetGui {
     }
 
     fn draw(&mut self, console: &mut RootConsole) {
+        let mut screen = Offscreen::new(20, 20);
 
+        RenderSystem::draw_frame(&mut screen, 0, 0, 19, 19, tcod::colors::ORANGE);
+        tcod::console::blit(&screen, (0, 0), (20, 20), &mut (*console), (20, 20), 1.0, 1.0);
     }
 }
