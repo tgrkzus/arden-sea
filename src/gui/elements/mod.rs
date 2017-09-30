@@ -1,6 +1,14 @@
 extern crate tcod;
-use self::tcod::{RootConsole};
-use self::tcod::console::{Offscreen};
+use self::tcod::*;
+use self::tcod::console::Console;
+use self::tcod::console::Offscreen;
+use self::tcod::input::{Key, KeyCode};
+
+use game::InputStatus;
+use gui::gui::{Gui, GuiKey};
+use components::graphics::RenderSystem;
+use components::action::Direction;
+
 
 #[derive(Debug, Clone)]
 pub struct GuiList {
@@ -81,13 +89,26 @@ impl GuiList {
         return &self.elements;
     }
 
+    /// Clears the list of str representations
+    pub fn clear_list(&mut self) {
+        self.elements.clear();
+    }
+
     /// Borrows a mutable reference to the internal list
     pub fn get_list_mut(&mut self) -> &mut Vec<String> {
         return &mut self.elements;
     }
 
     /// Draws this element at the given x, y with the given maximum w and h dimensions
-    pub fn draw(console: &mut RootConsole, x: &i32, y: &i32, w: &i32, h: &i32) {
+    pub fn draw(&self, console: &mut Offscreen, x: i32, y: i32, w: i32, h: i32) {
+        for (i, obj) in self.elements.iter().enumerate() {
+            console.print_ex(0, i as i32, BackgroundFlag::Set, TextAlignment::Left, obj);
+        }
+
+        for j in 0..w {
+            console.set_char_background(j, self.get_index(), colors::WHITE, BackgroundFlag::Set);
+            console.set_char_foreground(j, self.get_index(), colors::BLACK);
+        }
 
     }
 }

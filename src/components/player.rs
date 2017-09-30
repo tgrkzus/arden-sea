@@ -11,7 +11,7 @@ use self::specs::{Component, VecStorage, System, WriteStorage, ReadStorage,
 
 use components::position::CharacterPositionComponent;
 use components::state::{TurnStateComponent, ActionState};
-use components::action::{ControllerComponent, Controllers, Direction};
+use components::action::{ActionControllerSystem, ControllerComponent, Controllers, Direction};
 use components::information::{InformationComponent};
 
 use gui::gui::{Gui, GuiKey};
@@ -34,18 +34,39 @@ impl<'a> System<'a> for PlayerActionGeneratorSystem {
         // We assume our input failed and maybe prove otherwise!
         let mut new_status = InputStatus::Fail;
 
-        for (mut turn, controller) in (&mut turns, &controller).join().filter(|&(_, c)| c.controller == Controllers::Player) {
+        for (position, mut turn, controller) in (&positions, &mut turns, &controller).join().filter(|&(_, _, c)| c.controller == Controllers::Player) {
             let key = (*console).wait_for_keypress(false);
 
-            Self::check_input(&key, &mut turn, &mut new_status, &mut status);
+            if Self::check_input(&key, &mut turn, &mut new_status, &mut status) {
+                match new_status {
+                    // Gui actions
+                    InputStatus::Gui(ref mut guiType) => {
+                        match *guiType {
+                            GuiType::Target(ref mut target) => {
+                                let mut new = ActionControllerSystem::add_direction(&(position.x, position.y), &turn.direction);
+                                target.clear_list();
+                                for (e_pos, e_info) in (&positions, &infos).join().filter(|&(ref x, _)| (x.x, x.y) == new) {
+                                    if new == (e_pos.x, e_pos.y) {
+                                        target.add_to_list(e_info.name.clone());
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                    _ => { },
+                }
+            }
         }
+
         // Set our new status
         *status = new_status;
     }
 }
 
 impl PlayerActionGeneratorSystem {
-    pub fn check_input(key: &tcod::input::Key, mut turn: &mut TurnStateComponent, mut new_status: &mut InputStatus, status: &mut InputStatus) {
+    /// Returns true if the caller should regenerate internal state
+    pub fn check_input(key: &tcod::input::Key, mut turn: &mut TurnStateComponent, mut new_status: &mut InputStatus, status: &mut InputStatus) -> bool {
         match *status {
             // Gui actions
             InputStatus::Gui(ref mut guiType) => {
@@ -54,7 +75,7 @@ impl PlayerActionGeneratorSystem {
                         match target.process_input(&key) {
                             Some(result) => {
                                 *new_status = result;
-                                return;
+                                return false;
                             }
                             None => {
                             }
@@ -63,7 +84,6 @@ impl PlayerActionGeneratorSystem {
                 }
                 // Clone gui to new status (TODO possible to move this?)
                 *new_status = InputStatus::Gui(guiType.clone());
-
             }
 
             // Examine action
@@ -76,11 +96,9 @@ impl PlayerActionGeneratorSystem {
 
                         // Build target GUI
                         let mut target = TargetGui::new("Pick a target".to_string());
-                        target.add_to_list("One".to_string());
-                        target.add_to_list("Two".to_string());
-                        target.add_to_list("Three".to_string());
-                        target.add_to_list("Four".to_string());
+
                         *new_status = InputStatus::Gui(GuiType::Target(target));
+                        return true;
                     }
                     // Do nothing if no value
                     None => { 
@@ -104,6 +122,7 @@ impl PlayerActionGeneratorSystem {
             },
             _ => Self::perform_normal_action(&key, &mut turn, &mut new_status),
         }
+        return false;
     }
 
     pub fn perform_normal_action(key: &tcod::input::Key, turn: &mut TurnStateComponent, new_status: &mut InputStatus) {

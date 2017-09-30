@@ -49,8 +49,11 @@ impl Gui for TargetGui {
                             Direction::S => {
                                 self.list.select_next();
                             }
-
+                            Direction::E => {
+                                println!("Selected: {}:{}", self.list.get_index(), self.list.get_selected());
+                            }
                             _ => {
+
                             }
                         }
                     }
@@ -74,15 +77,7 @@ impl Gui for TargetGui {
     fn draw(&self, console: &mut RootConsole, x: i32, y: i32, w: i32, h: i32) {
         let mut gui_screen = Offscreen::new(30, 30); 
 
-        for (i, obj) in self.list.get_list().iter().enumerate() {
-            gui_screen.print_ex(0, i as i32, BackgroundFlag::Set, TextAlignment::Left, obj);
-        }
-
-        for j in 0..w {
-            gui_screen.set_char_background(j, self.list.get_index(), colors::WHITE, BackgroundFlag::Set);
-            gui_screen.set_char_foreground(j, self.list.get_index(), colors::BLACK);
-        }
-
+        self.list.draw(&mut gui_screen, 0, 0, w, h);
         RenderSystem::draw_frame(&mut *console, x - 1, y - 1, w + 1, h + 1, colors::GREEN); 
         tcod::console::blit(&gui_screen, (0, 0), (w, h),
         &mut (*console), (x, y), 1.0, 1.0);
@@ -93,5 +88,9 @@ impl Gui for TargetGui {
 impl TargetGui {
     pub fn add_to_list(&mut self, representation: String) {
         self.list.get_list_mut().push(representation);
+    }
+
+    pub fn clear_list(&mut self) {
+        self.list.clear_list();
     }
 }
