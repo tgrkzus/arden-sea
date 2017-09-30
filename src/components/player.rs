@@ -50,7 +50,9 @@ impl<'a> System<'a> for PlayerActionGeneratorSystem {
                                         target.add_to_list(e_info.name.clone());
                                     }
                                 }
-
+                                if target.is_list_empty() {
+                                    println!("empty");
+                                }
                             }
                         }
                     }

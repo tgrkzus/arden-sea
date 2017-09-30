@@ -99,6 +99,11 @@ impl GuiList {
         return &mut self.elements;
     }
 
+    /// Returns if the list is empty
+    pub fn is_list_empty(&self) -> bool {
+        return self.elements.is_empty();
+    }
+
     /// Draws this element at the given x, y with the given maximum w and h dimensions
     pub fn draw(&self, console: &mut Offscreen, x: i32, y: i32, w: i32, h: i32) {
         for (i, obj) in self.elements.iter().enumerate() {

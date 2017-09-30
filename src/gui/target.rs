@@ -93,4 +93,8 @@ impl TargetGui {
     pub fn clear_list(&mut self) {
         self.list.clear_list();
     }
+
+    pub fn is_list_empty(&self) -> bool {
+        return self.list.is_list_empty();
+    }
 }
