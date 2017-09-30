@@ -37,7 +37,9 @@ impl Gui for TargetGui {
     fn draw(&self, console: &mut RootConsole, x: i32, y: i32, w: i32, h: i32) {
         let mut gui_screen = Offscreen::new(30, 30); 
 
-        gui_screen.print_ex(0, 0, BackgroundFlag::Set, TextAlignment::Left, "Some stuff!".to_string());
+        for (i, obj) in self.list.get_list().iter().enumerate() {
+            gui_screen.print_ex(0, i as i32, BackgroundFlag::Set, TextAlignment::Left, obj);
+        }
 
         RenderSystem::draw_frame(&mut *console, x - 1, y - 1, w + 1, h + 1, colors::GREEN); 
         tcod::console::blit(&gui_screen, (0, 0), (w, h),
@@ -47,7 +49,7 @@ impl Gui for TargetGui {
 }
 
 impl TargetGui {
-    pub fn get_list_mut(&mut self) -> &mut Vec<String> {
-        return &mut self.list.get_list_mut();
+    pub fn add_to_list(&mut self, representation: String) {
+        self.list.get_list_mut().push(representation);
     }
 }

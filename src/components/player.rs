@@ -80,8 +80,12 @@ impl PlayerActionGeneratorSystem {
                         turn.direction = p;
 
                         // Build target GUI ?? TODO
-                        *new_status = InputStatus::Gui(GuiType::Target(
-                                TargetGui::new("Pick a target".to_string())));
+                        let mut target = TargetGui::new("Pick a target".to_string());
+                        target.add_to_list("One".to_string());
+                        target.add_to_list("Two".to_string());
+                        target.add_to_list("Three".to_string());
+                        target.add_to_list("Four".to_string());
+                        *new_status = InputStatus::Gui(GuiType::Target(target));
                     }
                     // Do nothing if no value
                     None => { 
