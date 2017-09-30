@@ -45,30 +45,25 @@ impl<'a> System<'a> for PlayerActionGeneratorSystem {
 }
 
 impl PlayerActionGeneratorSystem {
-    fn check_input(key: &tcod::input::Key, mut turn: &mut TurnStateComponent, mut new_status: &mut InputStatus, status: &mut InputStatus) {
+    pub fn check_input(key: &tcod::input::Key, mut turn: &mut TurnStateComponent, mut new_status: &mut InputStatus, status: &mut InputStatus) {
         match *status {
             // Gui actions
             InputStatus::Gui(ref mut guiType) => {
-                // Clone gui to new status (TODO possible to move this?)
-                *new_status = InputStatus::Gui(guiType.clone());
-
-                match Self::check_gui_keys(&key) {
-                    // Process and move
-                    Some(guiKey) => {
-                        match guiKey {
-                            GuiKey::Exit => {
-                                // Go back to no status
-                                *new_status = InputStatus::None;
+                match *guiType {
+                    GuiType::Target(ref mut target) => {
+                        match target.process_input(&key) {
+                            Some(result) => {
+                                *new_status = result;
+                                return;
                             }
-                            _ => {
-                                println!("{:?}", guiKey);
+                            None => {
                             }
                         }
                     }
-                    None => {                         
-                        // Error message?
-                    },
                 }
+                // Clone gui to new status (TODO possible to move this?)
+                *new_status = InputStatus::Gui(guiType.clone());
+
             }
 
             // Examine action
@@ -79,7 +74,7 @@ impl PlayerActionGeneratorSystem {
                         turn.action = ActionState::Examine;
                         turn.direction = p;
 
-                        // Build target GUI ?? TODO
+                        // Build target GUI
                         let mut target = TargetGui::new("Pick a target".to_string());
                         target.add_to_list("One".to_string());
                         target.add_to_list("Two".to_string());
@@ -111,42 +106,7 @@ impl PlayerActionGeneratorSystem {
         }
     }
 
-    fn check_gui_keys(key: &tcod::input::Key) -> Option<GuiKey> {
-        match Self::check_directions(&key) {
-            // Process and move
-            Some(p) => {
-                return Some(GuiKey::Move(p));
-            }
-            // Do nothing if no value
-            None => { 
-                if key.code == KeyCode::Char {
-                    match key.printable {
-                        'e' => {
-                            return Some(GuiKey::Info);
-                        }
-                        _ => {
-                            return None;
-                        }
-                    }
-                }
-                else {
-                    match key.code {
-                        KeyCode::Escape => {
-                            return Some(GuiKey::Exit);
-                        }
-                        KeyCode::Enter | KeyCode::NumPadEnter => {
-                            return Some(GuiKey::Confirm);
-                        }
-                        _ => {
-                            return None;
-                        }
-                    }
-                }
-            },
-        }
-    }
-
-    fn perform_normal_action(key: &tcod::input::Key, turn: &mut TurnStateComponent, new_status: &mut InputStatus) {
+    pub fn perform_normal_action(key: &tcod::input::Key, turn: &mut TurnStateComponent, new_status: &mut InputStatus) {
         // Exit check (TODO disable)
         if key.code == KeyCode::Escape {
             process::exit(0);
@@ -180,7 +140,7 @@ impl PlayerActionGeneratorSystem {
     /// Examples include:   Examining (which is followed by a direction)
     ///                     Opening a menu (e.g. Inventory)
     ///                     Attacking
-    fn check_state_keys(key: &tcod::input::Key) -> Option<InputStatus> {
+    pub fn check_state_keys(key: &tcod::input::Key) -> Option<InputStatus> {
         let status: InputStatus;
         if key.code == KeyCode::Char {
             match key.printable {
@@ -215,7 +175,7 @@ impl PlayerActionGeneratorSystem {
     ///
     /// Returns movement direction
     ///         None if no valid key
-    fn check_directions(key: &tcod::input::Key) -> Option<Direction> {
+    pub fn check_directions(key: &tcod::input::Key) -> Option<Direction> {
         let p: Direction; 
         if key.code == KeyCode::Char {
             match key.printable {

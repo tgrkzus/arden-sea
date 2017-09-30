@@ -4,9 +4,10 @@ use self::tcod::console::Offscreen;
 use self::tcod::input::{Key, KeyCode};
 
 use game::InputStatus;
-use gui::gui::{Gui};
+use gui::gui::{Gui, GuiKey};
 use gui::elements::{GuiList};
 use components::graphics::RenderSystem;
+use components::action::Direction;
 
 #[derive(Debug, Clone)]
 pub struct TargetGui {
@@ -30,7 +31,43 @@ impl Gui for TargetGui {
         return &self.title;
     }
 
-    fn process_input(&mut self, key: Key) -> Option<InputStatus> {
+    fn process_input(&mut self, key: &Key) -> Option<InputStatus> {
+        match Self::check_gui_keys(&key) {
+            // Process and move
+            Some(guiKey) => {
+                match guiKey {
+                    GuiKey::Exit => {
+                        // Go back to no status
+                        return Some(InputStatus::None);
+                    }
+
+                    GuiKey::Move(dir) => {
+                        match dir {
+                            Direction::N => {
+                                self.list.select_prev();
+                            }
+                            Direction::S => {
+                                self.list.select_next();
+                            }
+
+                            _ => {
+                            }
+                        }
+                    }
+
+                    GuiKey::Confirm => {
+                        println!("Selected: {}:{}", self.list.get_index(), self.list.get_selected());
+                    }
+
+                    _ => {
+                        println!("{:?}", guiKey);
+                    }
+                }
+            }
+            None => {                         
+                // Error message?
+            },
+        }
         return None;
     }
 
@@ -39,6 +76,11 @@ impl Gui for TargetGui {
 
         for (i, obj) in self.list.get_list().iter().enumerate() {
             gui_screen.print_ex(0, i as i32, BackgroundFlag::Set, TextAlignment::Left, obj);
+        }
+
+        for j in 0..w {
+            gui_screen.set_char_background(j, self.list.get_index(), colors::WHITE, BackgroundFlag::Set);
+            gui_screen.set_char_foreground(j, self.list.get_index(), colors::BLACK);
         }
 
         RenderSystem::draw_frame(&mut *console, x - 1, y - 1, w + 1, h + 1, colors::GREEN); 

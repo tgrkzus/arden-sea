@@ -17,12 +17,12 @@ impl GuiList {
     }
 
     /// Sets the selected object
-    pub fn select(&mut self, i: &i32) {
+    pub fn select(&mut self, i: i32) {
         if self.elements.is_empty() {
             panic!("GuiList is empty");
         }
 
-        self.selected = *i;
+        self.selected = i;
     }
 
     /// Selects the next object,
@@ -72,8 +72,8 @@ impl GuiList {
     }
 
     /// Get's the currently selected index
-    pub fn get_index(&self) -> &i32 {
-        return &self.selected;
+    pub fn get_index(&self) -> i32 {
+        return self.selected;
     }
 
     /// Borrows an immutable reference to the internal list
