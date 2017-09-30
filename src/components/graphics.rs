@@ -108,10 +108,25 @@ impl<'a> System<'a> for RenderSystem {
 }
 
 impl RenderSystem {
-    fn draw_gui(console: &mut Console, gui: &GuiType) {
+    fn draw_gui(console: &mut RootConsole, gui: &GuiType) {
+        //let mut gui_screen = Offscreen::new(LOG_SIZE.0, LOG_SIZE.1); 
+        //RenderSystem::draw_frame(&mut *window, WORLD_OFFSET.0 - 1, WORLD_OFFSET.1 - 1, WORLD_WINDOW_SIZE.0 + 1, WORLD_WINDOW_SIZE.1 + 1, colors::DESATURATED_BLUE); 
+        //tcod::console::blit(&gui_screen, (0, 0), WORLD_WINDOW_SIZE,
+        //             &mut (*window), WORLD_OFFSET, 1.0, 1.0);
+
         match *gui {
             GuiType::Target(ref targetGui) => {
-                println!("Draw target");
+                let mut gui_screen = Offscreen::new(30, 30); 
+                let w = 30;
+                let h = 30;
+                let x = WORLD_OFFSET.0 + WORLD_WINDOW_SIZE.0 / 2 - w / 2;
+                let y = WORLD_OFFSET.1 + WORLD_WINDOW_SIZE.1 / 2 - h / 2;
+
+                gui_screen.print_ex(0, 0, BackgroundFlag::Set, TextAlignment::Left, "Some stuff!".to_string());
+
+                RenderSystem::draw_frame(&mut *console, x - 1, y - 1, w + 1, h + 1, colors::GREEN); 
+                tcod::console::blit(&gui_screen, (0, 0), (w, h),
+                             &mut (*console), (x, y), 1.0, 1.0);
             }
 
             _ => {
