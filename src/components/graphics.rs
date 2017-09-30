@@ -6,6 +6,7 @@ use self::tcod::*;
 use self::tcod::console::Offscreen;
 use components::position::*;
 use game::{WorldAttributes, LogContent, InputStatus, GuiType};
+use gui::gui::Gui;
 use gui::target::TargetGui;
 use world::map::{TileType, Tile, Map};
 
@@ -114,6 +115,17 @@ impl RenderSystem {
         //tcod::console::blit(&gui_screen, (0, 0), WORLD_WINDOW_SIZE,
         //             &mut (*window), WORLD_OFFSET, 1.0, 1.0);
 
+        // Fade background
+        let w = console.width();
+        let h = console.height();
+
+        for x in 0..w {
+            for y in 0..h {
+                //console.set_char_background(x, y, colors::GREY, BackgroundFlag::);
+                console.set_char_foreground(x, y, colors::GREY);
+            }
+        }
+
         match *gui {
             GuiType::Target(ref targetGui) => {
                 let mut gui_screen = Offscreen::new(30, 30); 
@@ -127,6 +139,7 @@ impl RenderSystem {
                 RenderSystem::draw_frame(&mut *console, x - 1, y - 1, w + 1, h + 1, colors::GREEN); 
                 tcod::console::blit(&gui_screen, (0, 0), (w, h),
                              &mut (*console), (x, y), 1.0, 1.0);
+                console.print_ex(x + w - 1, y - 1, BackgroundFlag::Set, TextAlignment::Right, targetGui.get_title());
             }
 
             _ => {
