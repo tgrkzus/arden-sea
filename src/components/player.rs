@@ -130,7 +130,7 @@ impl PlayerActionGeneratorSystem {
                         KeyCode::Escape => {
                             return Some(GuiKey::Exit);
                         }
-                        KeyCode::Enter => {
+                        KeyCode::Enter | KeyCode::NumPadEnter => {
                             return Some(GuiKey::Confirm);
                         }
                         _ => {

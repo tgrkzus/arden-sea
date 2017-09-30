@@ -25,5 +25,5 @@ pub trait Gui {
     /// Draw's the Gui element on top of the given console.
     ///     Note: should use an internal offscreen console
     ///     TODO return offscreen with coords to blit onto?
-    fn draw(&mut self, console: &mut RootConsole);
+    fn draw(&self, console: &mut RootConsole, x: i32, y: i32, w: i32, h: i32);
 }
