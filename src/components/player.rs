@@ -14,10 +14,10 @@ use components::state::{TurnStateComponent, ActionState};
 use components::action::{ControllerComponent, Controllers, Direction};
 use components::information::{InformationComponent};
 
-use gui::gui::{Gui};
+use gui::gui::{Gui, GuiKey};
 use gui::target::{TargetGui};
 
-use game::InputStatus;
+use game::{InputStatus, GuiType};
 
 pub struct PlayerActionGeneratorSystem;
 impl<'a> System<'a> for PlayerActionGeneratorSystem {
@@ -26,7 +26,7 @@ impl<'a> System<'a> for PlayerActionGeneratorSystem {
                        ReadStorage<'a, CharacterPositionComponent>,
                        ReadStorage<'a, InformationComponent>,
                        FetchMut<'a, RootConsole>,
-                       FetchMut<'a, InputStatus<'a>>);
+                       FetchMut<'a, InputStatus>);
 
     fn run(&mut self, data: Self::SystemData) {
         let (mut turns, controller, positions, infos, mut console, mut status) = data;
@@ -37,7 +37,7 @@ impl<'a> System<'a> for PlayerActionGeneratorSystem {
         for (mut turn, controller) in (&mut turns, &controller).join().filter(|&(_, c)| c.controller == Controllers::Player) {
             let key = (*console).wait_for_keypress(false);
 
-            Self::check_input(&key, &mut turn, &mut new_status, &status);
+            Self::check_input(&key, &mut turn, &mut new_status, &mut status);
         }
         // Set our new status
         *status = new_status;
@@ -45,13 +45,30 @@ impl<'a> System<'a> for PlayerActionGeneratorSystem {
 }
 
 impl PlayerActionGeneratorSystem {
-    fn check_input(key: &tcod::input::Key, mut turn: &mut TurnStateComponent, mut new_status: &mut InputStatus, status: &InputStatus) {
+    fn check_input(key: &tcod::input::Key, mut turn: &mut TurnStateComponent, mut new_status: &mut InputStatus, status: &mut InputStatus) {
         match *status {
-            // Target action
-            InputStatus::Target => {
-                //let dir = turn.direction;
+            // Gui actions
+            InputStatus::Gui(ref mut guiType) => {
+                // Clone gui to new status (TODO possible to move this?)
+                *new_status = InputStatus::Gui(guiType.clone());
 
-                // Get existing target GUI and get input that we use to update said state!
+                match Self::check_gui_keys(&key) {
+                    // Process and move
+                    Some(guiKey) => {
+                        match guiKey {
+                            GuiKey::Exit => {
+                                // Go back to no status
+                                *new_status = InputStatus::None;
+                            }
+                            _ => {
+                                println!("{:?}", guiKey);
+                            }
+                        }
+                    }
+                    None => {                         
+                        // Error message?
+                    },
+                }
             }
 
             // Examine action
@@ -63,7 +80,8 @@ impl PlayerActionGeneratorSystem {
                         turn.direction = p;
 
                         // Build target GUI ?? TODO
-                        *new_status = InputStatus::Target;
+                        *new_status = InputStatus::Gui(GuiType::Target(
+                                TargetGui::new("Pick a target".to_string())));
                     }
                     // Do nothing if no value
                     None => { 
@@ -86,6 +104,41 @@ impl PlayerActionGeneratorSystem {
                 }
             },
             _ => Self::perform_normal_action(&key, &mut turn, &mut new_status),
+        }
+    }
+
+    fn check_gui_keys(key: &tcod::input::Key) -> Option<GuiKey> {
+        match Self::check_directions(&key) {
+            // Process and move
+            Some(p) => {
+                return Some(GuiKey::Move(p));
+            }
+            // Do nothing if no value
+            None => { 
+                if key.code == KeyCode::Char {
+                    match key.printable {
+                        'e' => {
+                            return Some(GuiKey::Info);
+                        }
+                        _ => {
+                            return None;
+                        }
+                    }
+                }
+                else {
+                    match key.code {
+                        KeyCode::Escape => {
+                            return Some(GuiKey::Exit);
+                        }
+                        KeyCode::Enter => {
+                            return Some(GuiKey::Confirm);
+                        }
+                        _ => {
+                            return None;
+                        }
+                    }
+                }
+            },
         }
     }
 

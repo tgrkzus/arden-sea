@@ -2,6 +2,15 @@ extern crate tcod;
 use self::tcod::{RootConsole};
 use self::tcod::input::{Key};
 use game::InputStatus;
+use components::action::{Direction};
+
+#[derive(Debug)]
+pub enum GuiKey {
+    Exit,               // Esc
+    Move(Direction),    // Directionals
+    Confirm,            // Enter
+    Info,               // E key (generic 'give me more info' key)
+}
 
 pub trait Gui {
     fn new(title: String) -> Self where Self:Sized;

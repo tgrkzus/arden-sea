@@ -14,7 +14,7 @@ use components::graphics::{RenderSystem, CharacterRenderComponent};
 use components::position::CharacterPositionComponent;
 use components::state::{TurnStateComponent, ActionState};
 use components::information::{InformationComponent};
-use gui::gui::{Gui};
+use gui::gui::{Gui, GuiKey};
 use gui::target::TargetGui;
 
 use world::map::{Tile, TileType, Map};
@@ -45,14 +45,20 @@ use world::map::{Tile, TileType, Map};
 ///
 ///             There's also a Gui status which wraps a Gui object to be drawn on top of the world
 ///             (after all other rendering is done)
-#[derive(Clone)]
-pub enum InputStatus <'a> {
+#[derive(Debug, Clone)]
+pub enum InputStatus {
+    None,
     Ok,
     Target,
     Examine,
     Attack,
     Fail,
-    Gui { gui: &'a Gui },
+    Gui(GuiType),
+}
+
+#[derive(Debug, Clone)]
+pub enum GuiType {
+    Target(TargetGui),
 }
 
 #[derive(Debug)]

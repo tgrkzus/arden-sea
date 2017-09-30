@@ -5,7 +5,8 @@ extern crate tcod;
 use self::tcod::*;
 use self::tcod::console::Offscreen;
 use components::position::*;
-use game::{WorldAttributes, LogContent, InputStatus};
+use game::{WorldAttributes, LogContent, InputStatus, GuiType};
+use gui::target::TargetGui;
 use world::map::{TileType, Tile, Map};
 
 const WORLD_OFFSET: (i32, i32) = (10, 10);
@@ -31,7 +32,7 @@ impl<'a> System<'a> for RenderSystem {
      FetchMut<'a, RootConsole>,
      Fetch<'a, LogContent>,
      Fetch<'a, Map>,
-     Fetch<'a, InputStatus<'a> >);
+     Fetch<'a, InputStatus>);
 
     fn run(&mut self, data: Self::SystemData) {
         let (render, position, mut window, log, map, input_status) = data;
@@ -72,6 +73,9 @@ impl<'a> System<'a> for RenderSystem {
         window.set_default_foreground(colors::WHITE);
         let status: String;
         match *input_status {
+            InputStatus::None => {
+                status = "".to_string();
+            },
             InputStatus::Ok => {
                 status = "Ok".to_string();
             },
@@ -88,7 +92,13 @@ impl<'a> System<'a> for RenderSystem {
                 status = "Invalid Input".to_string();
                 window.set_default_background(colors::RED);
             },
-            _ => status = "Idk".to_string(),
+            InputStatus::Gui(ref gui) => {
+                status = "Gui".to_string();
+                Self::draw_gui(&mut *window, &gui);
+            },
+            _ => {
+                panic!("Unknown gui type");
+            },
         }
         window.print_ex(WORLD_OFFSET.0, WORLD_OFFSET.1 + WORLD_WINDOW_SIZE.1 + 1, BackgroundFlag::Set, TextAlignment::Left, status);
         
@@ -98,6 +108,17 @@ impl<'a> System<'a> for RenderSystem {
 }
 
 impl RenderSystem {
+    fn draw_gui(console: &mut Console, gui: &GuiType) {
+        match *gui {
+            GuiType::Target(ref targetGui) => {
+                println!("Draw target");
+            }
+
+            _ => {
+                panic!("Unknown gui type");
+            }
+        }
+    }
 
     fn draw_tiles(console: &mut Console, map: &Map) {
         for x in 0..WORLD_WINDOW_SIZE.0 {
