@@ -19,6 +19,11 @@ use gui::target::{TargetGui};
 
 use game::{InputStatus, GuiType};
 
+#[derive(Debug)]
+struct OtherEntities<'a> {
+    pub e: &'a Vec<(&'a CharacterPositionComponent, &'a InformationComponent, &'a mut TurnStateComponent, &'a ControllerComponent)>,
+}
+
 pub struct PlayerActionGeneratorSystem;
 impl<'a> System<'a> for PlayerActionGeneratorSystem {
     type SystemData = (WriteStorage<'a, TurnStateComponent>,
@@ -34,22 +39,17 @@ impl<'a> System<'a> for PlayerActionGeneratorSystem {
         // We assume our input failed and maybe prove otherwise!
         let mut new_status = InputStatus::Fail;
         //let (player, others) = (&positions, &infos, &mut turns, &controller).join().partition(|&(_, _, _, c)| c.controller == Controllers::Player);
-        let (mut player, mut others) : (Vec<_>, Vec<_>) = (&controller).join().partition(|&c| c.controller == Controllers::Player);
-        for (p, o) in player.iter_mut().zip(others.iter_mut()) {
-            println!("{:?}, {:?}", p, o);
-        }
-                /*
-        match player.last() {
-            Some((pos, info, mut turn, controller)) => {
+        let (mut player, mut others) : (Vec<_>, Vec<_>) = (&positions, &infos, &mut turns, &controller).join().partition(|&(_, _, _, c)| c.controller == Controllers::Player);
+        match player.iter_mut().last() {
+            Some(&mut (ref pos, ref info, ref mut turn, ref controller)) => {
                 let key = (*console).wait_for_keypress(false);
-                Self::check_input(&key, &mut turn, &mut new_status, &status);
+                Self::check_input(&key, pos, OtherEntities { e: &others }, turn, &mut new_status, &mut status);
                 *status = new_status;
             },
             _ => {
                 panic!("No player!");
             }
         }
-        */
 
 
         /*
@@ -80,7 +80,8 @@ impl<'a> System<'a> for PlayerActionGeneratorSystem {
 }
 
 impl PlayerActionGeneratorSystem {
-    pub fn check_input(key: &tcod::input::Key, mut turn: &mut TurnStateComponent, mut new_status: &mut InputStatus, status: &mut InputStatus) {
+    fn check_input(key: &tcod::input::Key, playerPosition: &CharacterPositionComponent, others: OtherEntities, 
+                   mut turn: &mut TurnStateComponent, mut new_status: &mut InputStatus, status: &mut InputStatus) {
         match *status {
             // Gui actions
             InputStatus::Gui(ref action, ref mut guiType) => {
@@ -110,6 +111,11 @@ impl PlayerActionGeneratorSystem {
 
                         // Build target GUI
                         let mut target = TargetGui::new("Pick a target".to_string());
+
+                        let new = ActionControllerSystem::add_direction(&(playerPosition.x, playerPosition.y), &turn.direction);
+                        for &(pos, info, _, _) in others.e.iter().filter(|&&(ref p, _, _, _)| (p.x, p.y) == new) {
+                            target.add_to_list(info.name.clone());
+                        }
 
                         *new_status = InputStatus::Gui(Box::new(InputStatus::Examine), GuiType::Target(target));
                     }
