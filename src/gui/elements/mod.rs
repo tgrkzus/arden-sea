@@ -54,10 +54,11 @@ impl GuiList {
             panic!("GuiList is empty");
         }
 
-        self.selected -= 1;
-
-        if self.selected < 0 {
+        if self.selected == 0 {
             self.selected = (self.elements.len() as u32) - 1;
+        }
+        else {
+            self.selected -= 1;
         }
     }
 

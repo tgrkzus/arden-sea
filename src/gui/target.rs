@@ -52,20 +52,17 @@ impl Gui for TargetGui {
                                 self.list.select_next();
                             }
                             Direction::E => {
-                                println!("Selected: {}:{}", self.list.get_index(), self.list.get_selected());
+                                return Some(InputStatus::Ok);
                             }
                             _ => {
-
                             }
                         }
                     }
 
                     GuiKey::Confirm => {
-                        println!("Selected: {}:{}", self.list.get_index(), self.list.get_selected());
+                        return Some(InputStatus::Ok);
                     }
-
                     _ => {
-                        println!("{:?}", guiKey);
                     }
                 }
             }
@@ -77,7 +74,6 @@ impl Gui for TargetGui {
     }
 
     fn draw(&self, console: &mut RootConsole, x: i32, y: i32, w: i32, h: i32) {
-        println!("{:?}", self);
         let mut gui_screen = Offscreen::new(30, 30); 
 
         self.list.draw(&mut gui_screen, 0, 0, w, h);

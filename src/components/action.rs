@@ -7,7 +7,7 @@ use self::tcod::input::KeyCode;
 
 extern crate specs;
 use self::specs::{Component, VecStorage, System, WriteStorage, ReadStorage,
-                    Fetch, FetchMut, Join, EntitiesRes};
+                    Fetch, FetchMut, Join, EntitiesRes, Entity, Entities};
 
 use components::position::CharacterPositionComponent;
 use components::state::{TurnStateComponent, ActionState};
@@ -53,10 +53,11 @@ impl<'a> System<'a> for ActionControllerSystem {
                        ReadStorage<'a, InformationComponent>,
                        Fetch<'a, WorldAttributes>,
                        FetchMut<'a, Map>,
-                       FetchMut<'a, LogContent>);
+                       FetchMut<'a, LogContent>,
+                       Entities<'a>);
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut positions, turns, infos, attr, mut map, mut log) = data;
+        let (mut positions, turns, infos, attr, mut map, mut log, entities) = data;
 
 
         for turn in (&turns).join().filter(|&ref turn| turn.action == ActionState::None) {
@@ -105,24 +106,23 @@ impl<'a> System<'a> for ActionControllerSystem {
                 }
             }
 
-            let mut entities: Vec<String> = Vec::new(); 
-            for (e_pos, e_info) in (&positions, &infos).join().filter(|&(ref x, _)| (x.x, x.y) == new) {
-                if new == (e_pos.x, e_pos.y) {
-                    entities.push(e_info.name.clone());
-                }
-            }
+            match turn.target {
+                Some(id) => {
+                    match (&positions, &infos, &*entities).join().find(|&(_, _, ref e)| e.id() == id) {
+                        Some((_, e_info, _)) => {
+                            result = format!("There is {} here", e_info.name);
+                        },
 
-            if !entities.is_empty() {
-                result = "There is: ".to_owned();
-                let iter = entities.iter();
-                for name in iter.enumerate() {
-                    result.push_str(((&name.1)).to_owned());
-                    result.push_str(", ");
-                }
+                        None => { 
+                            panic!("Can't find entity with id");
+                        },
+                    }
+                },
+                None => {},
             }
 
             log.add_message(result);
-    }
+        }
 
         for (position, turn) in (&positions, &turns).join().filter(|&(_, ref turn)| turn.action == ActionState::Attack) {
             let mut new = Self::add_direction(&(position.x, position.y), &turn.direction);
@@ -209,6 +209,5 @@ impl<'a> System<'a> for ActionGeneratorSystem {
             }
         }
     }
-
 }
 

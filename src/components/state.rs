@@ -13,7 +13,7 @@ use components::action::{Direction};
 pub struct TurnStateComponent {
     pub direction: Direction,
     pub action: ActionState,
-    pub target: i32,
+    pub target: Option<u32>,
 }
 
 impl Component for TurnStateComponent {

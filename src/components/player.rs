@@ -53,32 +53,6 @@ impl<'a> System<'a> for PlayerActionGeneratorSystem {
                 panic!("No player!");
             }
         }
-
-
-        /*
-           match new_status {
-        // Gui actions
-        InputStatus::Gui(ref action, ref mut guiType) => {
-        match *guiType {
-        GuiType::Target(ref mut target) => {
-        let mut new = ActionControllerSystem::add_direction(&(position.x, position.y), &turn.direction);
-        target.clear_list();
-        for (e_pos, e_info) in (&positions, &infos).join().filter(|&(ref x, _)| (x.x, x.y) == new) {
-        if new == (e_pos.x, e_pos.y) {
-        target.add_to_list(e_info.name.clone());
-        }
-        }
-        if target.list_count() <= 1 {
-        // Just examine immediately
-        }
-        }
-        }
-        }
-        _ => { },
-        }
-        }
-        */
-        // Set our new status
     }
 }
 
@@ -92,6 +66,7 @@ impl PlayerActionGeneratorSystem {
                     GuiType::Target(ref mut target) => {
                         match target.process_input(&key) {
                             Some(result) => {
+                                turn.target = Some(target.get_selected_entity_id());
                                 *new_status = result;
                                 return;
                             }
@@ -111,6 +86,7 @@ impl PlayerActionGeneratorSystem {
                     Some(p) => {
                         turn.action = ActionState::Examine;
                         turn.direction = p;
+                        turn.target = None;
 
                         // Build target GUI
                         let mut target = TargetGui::new("Pick a target".to_string());
@@ -120,7 +96,25 @@ impl PlayerActionGeneratorSystem {
                             target.add_to_list(ent.id(), info.name.clone());
                         }
 
-                        *new_status = InputStatus::Gui(Box::new(InputStatus::Examine), GuiType::Target(target));
+                        // Add player if direction is none (hack)
+                        match turn.direction {
+                            Direction::None => { target.add_to_list(0, "The Player".to_string()); },
+                            _ => {}
+                        }
+
+                        if target.list_count() == 0 {
+                            // Examine in direction
+                            *new_status = InputStatus::Ok;
+                        }
+                        else if target.list_count() == 1 {
+                            // Examine default (first) target
+                            turn.target = Some(target.get_selected_entity_id());
+                            *new_status = InputStatus::Ok;
+                        }
+                        else {
+                            *new_status = InputStatus::Gui(Box::new(InputStatus::Examine), GuiType::Target(target));
+                        }
+
                     }
                     // Do nothing if no value
                     None => { 
