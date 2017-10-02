@@ -13,6 +13,7 @@ use components::action::Direction;
 pub struct TargetGui {
     title: String,
     list: GuiList,
+    ids: Vec<u32>,
 }
 
 impl Gui for TargetGui {
@@ -20,6 +21,7 @@ impl Gui for TargetGui {
         return Self { 
             title: title,
             list: GuiList::new(),
+            ids: Vec::new(),
         };
     }
 
@@ -75,6 +77,7 @@ impl Gui for TargetGui {
     }
 
     fn draw(&self, console: &mut RootConsole, x: i32, y: i32, w: i32, h: i32) {
+        println!("{:?}", self);
         let mut gui_screen = Offscreen::new(30, 30); 
 
         self.list.draw(&mut gui_screen, 0, 0, w, h);
@@ -86,8 +89,9 @@ impl Gui for TargetGui {
 }
 
 impl TargetGui {
-    pub fn add_to_list(&mut self, representation: String) {
+    pub fn add_to_list(&mut self, entId: u32, representation: String) {
         self.list.get_list_mut().push(representation);
+        self.ids.push(entId);
     }
 
     pub fn clear_list(&mut self) {
@@ -98,7 +102,11 @@ impl TargetGui {
         return self.list.is_list_empty();
     }
 
-    pub fn list_count(&self) -> i32 {
+    pub fn list_count(&self) -> usize {
         return self.list.list_count();
+    }
+
+    pub fn get_selected_entity_id(&self) -> u32 {
+        return self.ids[self.list.get_index() as usize];
     }
 }

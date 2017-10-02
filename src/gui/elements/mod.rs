@@ -13,7 +13,7 @@ use components::action::Direction;
 #[derive(Debug, Clone)]
 pub struct GuiList {
     elements: Vec<String>,
-    selected: i32,
+    selected: u32,
 }
 
 impl GuiList {
@@ -25,7 +25,7 @@ impl GuiList {
     }
 
     /// Sets the selected object
-    pub fn select(&mut self, i: i32) {
+    pub fn select(&mut self, i: u32) {
         if self.elements.is_empty() {
             panic!("GuiList is empty");
         }
@@ -57,7 +57,7 @@ impl GuiList {
         self.selected -= 1;
 
         if self.selected < 0 {
-            self.selected = (self.elements.len() as i32) - 1;
+            self.selected = (self.elements.len() as u32) - 1;
         }
     }
 
@@ -80,7 +80,7 @@ impl GuiList {
     }
 
     /// Get's the currently selected index
-    pub fn get_index(&self) -> i32 {
+    pub fn get_index(&self) -> u32 {
         return self.selected;
     }
 
@@ -89,8 +89,8 @@ impl GuiList {
         return &self.elements;
     }
 
-    pub fn list_count(&self) -> i32 {
-        return self.elements.len() as i32;
+    pub fn list_count(&self) -> usize {
+        return self.elements.len();
     }
 
     /// Clears the list of str representations
@@ -115,8 +115,8 @@ impl GuiList {
         }
 
         for j in 0..w {
-            console.set_char_background(j, self.get_index(), colors::WHITE, BackgroundFlag::Set);
-            console.set_char_foreground(j, self.get_index(), colors::BLACK);
+            console.set_char_background(j, self.get_index() as i32, colors::WHITE, BackgroundFlag::Set);
+            console.set_char_foreground(j, self.get_index() as i32, colors::BLACK);
         }
 
     }

@@ -7,7 +7,7 @@ use self::tcod::input::KeyCode;
 
 extern crate specs;
 use self::specs::{Component, VecStorage, System, WriteStorage, ReadStorage,
-                    Fetch, FetchMut, Join};
+                    Fetch, FetchMut, Join, Entities, Entity};
 
 use components::position::CharacterPositionComponent;
 use components::state::{TurnStateComponent, ActionState};
@@ -21,12 +21,13 @@ use game::{InputStatus, GuiType};
 
 #[derive(Debug)]
 struct OtherEntities<'a> {
-    pub e: &'a Vec<(&'a CharacterPositionComponent, &'a InformationComponent, &'a mut TurnStateComponent, &'a ControllerComponent)>,
+    pub e: &'a Vec<(Entity, &'a CharacterPositionComponent, &'a InformationComponent, &'a mut TurnStateComponent, &'a ControllerComponent)>,
 }
 
 pub struct PlayerActionGeneratorSystem;
 impl<'a> System<'a> for PlayerActionGeneratorSystem {
     type SystemData = (WriteStorage<'a, TurnStateComponent>,
+                       Entities<'a>,
                        ReadStorage<'a, ControllerComponent>,
                        ReadStorage<'a, CharacterPositionComponent>,
                        ReadStorage<'a, InformationComponent>,
@@ -34,14 +35,16 @@ impl<'a> System<'a> for PlayerActionGeneratorSystem {
                        FetchMut<'a, InputStatus>);
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut turns, controller, positions, infos, mut console, mut status) = data;
+        let (mut turns, entities, controller, positions, infos, mut console, mut status) = data;
 
         // We assume our input failed and maybe prove otherwise!
         let mut new_status = InputStatus::Fail;
-        //let (player, others) = (&positions, &infos, &mut turns, &controller).join().partition(|&(_, _, _, c)| c.controller == Controllers::Player);
-        let (mut player, mut others) : (Vec<_>, Vec<_>) = (&positions, &infos, &mut turns, &controller).join().partition(|&(_, _, _, c)| c.controller == Controllers::Player);
+
+        let (mut player, mut others) : (Vec<_>, Vec<_>) = (&*entities, &positions, &infos, &mut turns, &controller).join().partition(
+            |&(_, _, _, _, c)| c.controller == Controllers::Player);
+
         match player.iter_mut().last() {
-            Some(&mut (ref pos, ref info, ref mut turn, ref controller)) => {
+            Some(&mut (ref ent, ref pos, ref info, ref mut turn, ref controller)) => {
                 let key = (*console).wait_for_keypress(false);
                 Self::check_input(&key, pos, OtherEntities { e: &others }, turn, &mut new_status, &mut status);
                 *status = new_status;
@@ -113,8 +116,8 @@ impl PlayerActionGeneratorSystem {
                         let mut target = TargetGui::new("Pick a target".to_string());
 
                         let new = ActionControllerSystem::add_direction(&(playerPosition.x, playerPosition.y), &turn.direction);
-                        for &(pos, info, _, _) in others.e.iter().filter(|&&(ref p, _, _, _)| (p.x, p.y) == new) {
-                            target.add_to_list(info.name.clone());
+                        for &(ent, pos, info, _, _) in others.e.iter().filter(|&&(_, ref p, _, _, _)| (p.x, p.y) == new) {
+                            target.add_to_list(ent.id(), info.name.clone());
                         }
 
                         *new_status = InputStatus::Gui(Box::new(InputStatus::Examine), GuiType::Target(target));

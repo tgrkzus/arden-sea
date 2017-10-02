@@ -106,6 +106,7 @@ impl Game {
             .with(TurnStateComponent {
                 direction: Direction::None,
                 action: ActionState::None,
+                target: -1,
             })
             .with(InformationComponent {
                 name: "The Player".to_string(),
@@ -121,6 +122,7 @@ impl Game {
             .with(TurnStateComponent {
                 direction: Direction::None,
                 action: ActionState::None,
+                target: -1,
             })
             .with(InformationComponent {
                 name: "An enemy".to_string(),

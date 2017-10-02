@@ -7,10 +7,13 @@ use components::action::{Direction};
 ///     Describes a single turns action
 ///     Wraps key presses, state the player is in,
 ///     such as Examining, attacking etc.
+///
+///     Also optionally has a target (which is an entity id!)
 #[derive(Debug)]
 pub struct TurnStateComponent {
     pub direction: Direction,
     pub action: ActionState,
+    pub target: i32,
 }
 
 impl Component for TurnStateComponent {
