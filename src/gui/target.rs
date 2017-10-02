@@ -97,4 +97,8 @@ impl TargetGui {
     pub fn is_list_empty(&self) -> bool {
         return self.list.is_list_empty();
     }
+
+    pub fn list_count(&self) -> i32 {
+        return self.list.list_count();
+    }
 }

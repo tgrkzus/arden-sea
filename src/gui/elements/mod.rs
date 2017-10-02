@@ -89,6 +89,10 @@ impl GuiList {
         return &self.elements;
     }
 
+    pub fn list_count(&self) -> i32 {
+        return self.elements.len() as i32;
+    }
+
     /// Clears the list of str representations
     pub fn clear_list(&mut self) {
         self.elements.clear();

@@ -93,7 +93,7 @@ impl<'a> System<'a> for RenderSystem {
                 status = "Invalid Input".to_string();
                 window.set_default_background(colors::RED);
             },
-            InputStatus::Gui(ref gui) => {
+            InputStatus::Gui(ref action, ref gui) => {
                 status = "Gui".to_string();
                 Self::draw_gui(&mut *window, &gui);
             },

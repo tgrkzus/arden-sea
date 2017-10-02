@@ -30,54 +30,66 @@ impl<'a> System<'a> for PlayerActionGeneratorSystem {
 
     fn run(&mut self, data: Self::SystemData) {
         let (mut turns, controller, positions, infos, mut console, mut status) = data;
-        
+
         // We assume our input failed and maybe prove otherwise!
         let mut new_status = InputStatus::Fail;
-
-        for (position, mut turn, controller) in (&positions, &mut turns, &controller).join().filter(|&(_, _, c)| c.controller == Controllers::Player) {
-            let key = (*console).wait_for_keypress(false);
-
-            if Self::check_input(&key, &mut turn, &mut new_status, &mut status) {
-                match new_status {
-                    // Gui actions
-                    InputStatus::Gui(ref mut guiType) => {
-                        match *guiType {
-                            GuiType::Target(ref mut target) => {
-                                let mut new = ActionControllerSystem::add_direction(&(position.x, position.y), &turn.direction);
-                                target.clear_list();
-                                for (e_pos, e_info) in (&positions, &infos).join().filter(|&(ref x, _)| (x.x, x.y) == new) {
-                                    if new == (e_pos.x, e_pos.y) {
-                                        target.add_to_list(e_info.name.clone());
-                                    }
-                                }
-                                if target.is_list_empty() {
-                                    println!("empty");
-                                }
-                            }
-                        }
-                    }
-                    _ => { },
-                }
+        //let (player, others) = (&positions, &infos, &mut turns, &controller).join().partition(|&(_, _, _, c)| c.controller == Controllers::Player);
+        let (mut player, mut others) : (Vec<_>, Vec<_>) = (&controller).join().partition(|&c| c.controller == Controllers::Player);
+        for (p, o) in player.iter_mut().zip(others.iter_mut()) {
+            println!("{:?}, {:?}", p, o);
+        }
+                /*
+        match player.last() {
+            Some((pos, info, mut turn, controller)) => {
+                let key = (*console).wait_for_keypress(false);
+                Self::check_input(&key, &mut turn, &mut new_status, &status);
+                *status = new_status;
+            },
+            _ => {
+                panic!("No player!");
             }
         }
+        */
 
+
+        /*
+           match new_status {
+        // Gui actions
+        InputStatus::Gui(ref action, ref mut guiType) => {
+        match *guiType {
+        GuiType::Target(ref mut target) => {
+        let mut new = ActionControllerSystem::add_direction(&(position.x, position.y), &turn.direction);
+        target.clear_list();
+        for (e_pos, e_info) in (&positions, &infos).join().filter(|&(ref x, _)| (x.x, x.y) == new) {
+        if new == (e_pos.x, e_pos.y) {
+        target.add_to_list(e_info.name.clone());
+        }
+        }
+        if target.list_count() <= 1 {
+        // Just examine immediately
+        }
+        }
+        }
+        }
+        _ => { },
+        }
+        }
+        */
         // Set our new status
-        *status = new_status;
     }
 }
 
 impl PlayerActionGeneratorSystem {
-    /// Returns true if the caller should regenerate internal state
-    pub fn check_input(key: &tcod::input::Key, mut turn: &mut TurnStateComponent, mut new_status: &mut InputStatus, status: &mut InputStatus) -> bool {
+    pub fn check_input(key: &tcod::input::Key, mut turn: &mut TurnStateComponent, mut new_status: &mut InputStatus, status: &mut InputStatus) {
         match *status {
             // Gui actions
-            InputStatus::Gui(ref mut guiType) => {
+            InputStatus::Gui(ref action, ref mut guiType) => {
                 match *guiType {
                     GuiType::Target(ref mut target) => {
                         match target.process_input(&key) {
                             Some(result) => {
                                 *new_status = result;
-                                return false;
+                                return;
                             }
                             None => {
                             }
@@ -85,7 +97,7 @@ impl PlayerActionGeneratorSystem {
                     }
                 }
                 // Clone gui to new status (TODO possible to move this?)
-                *new_status = InputStatus::Gui(guiType.clone());
+                *new_status = InputStatus::Gui(Box::new(InputStatus::Examine), guiType.clone());
             }
 
             // Examine action
@@ -99,8 +111,7 @@ impl PlayerActionGeneratorSystem {
                         // Build target GUI
                         let mut target = TargetGui::new("Pick a target".to_string());
 
-                        *new_status = InputStatus::Gui(GuiType::Target(target));
-                        return true;
+                        *new_status = InputStatus::Gui(Box::new(InputStatus::Examine), GuiType::Target(target));
                     }
                     // Do nothing if no value
                     None => { 
@@ -124,7 +135,6 @@ impl PlayerActionGeneratorSystem {
             },
             _ => Self::perform_normal_action(&key, &mut turn, &mut new_status),
         }
-        return false;
     }
 
     pub fn perform_normal_action(key: &tcod::input::Key, turn: &mut TurnStateComponent, new_status: &mut InputStatus) {

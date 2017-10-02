@@ -53,7 +53,7 @@ pub enum InputStatus {
     Examine,
     Attack,
     Fail,
-    Gui(GuiType),
+    Gui(Box<InputStatus>, GuiType),
 }
 
 #[derive(Debug, Clone)]
