@@ -14,6 +14,7 @@ use components::graphics::{RenderSystem, CharacterRenderComponent};
 use components::position::CharacterPositionComponent;
 use components::state::{TurnStateComponent, ActionState};
 use components::information::{InformationComponent};
+use camera::{Camera, CameraState, CameraSystem};
 use gui::gui::{Gui, GuiKey};
 use gui::target::TargetGui;
 
@@ -134,8 +135,8 @@ impl Game {
         world.add_resource(window);
         world.add_resource(WorldAttributes { size: (80, 80), });
         world.add_resource(LogContent { content: vec!["Welcome to the world!".to_string()] , });
+        world.add_resource(Camera::new());
         Self::reset_input_status(&mut world);
-
 
         let mut map = Map::new(80, 80, 5);
         /*
@@ -161,6 +162,7 @@ impl Game {
                 "action_controller",
                 &["action_generator"],
             )
+            .add(CameraSystem, "camera_system", &["action_controller"])
             .add_barrier()
             .build();
 
