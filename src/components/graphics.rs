@@ -9,6 +9,7 @@ use game::{WorldAttributes, LogContent, InputStatus, GuiType};
 use gui::gui::Gui;
 use gui::target::TargetGui;
 use world::map::{TileType, Tile, Map};
+use camera::{Camera, CameraState};
 
 const WORLD_OFFSET: (i32, i32) = (10, 10);
 const WORLD_WINDOW_SIZE: (i32, i32) = (80, 80);
@@ -33,10 +34,11 @@ impl<'a> System<'a> for RenderSystem {
      FetchMut<'a, RootConsole>,
      Fetch<'a, LogContent>,
      Fetch<'a, Map>,
-     Fetch<'a, InputStatus>);
+     Fetch<'a, InputStatus>,
+     Fetch<'a, Camera>);
 
     fn run(&mut self, data: Self::SystemData) {
-        let (render, position, mut window, log, map, input_status) = data;
+        let (render, position, mut window, log, map, input_status, camera) = data;
 
         window.set_default_foreground(colors::WHITE);
         window.set_default_background(colors::BLACK);
@@ -49,11 +51,12 @@ impl<'a> System<'a> for RenderSystem {
         let mut log_screen = Offscreen::new(LOG_SIZE.0, LOG_SIZE.1);
 
         // Render map
-        RenderSystem::draw_tiles(&mut world_screen, &map);
+        RenderSystem::draw_tiles(&mut world_screen, &map, &camera);
         
+        let c_offset = camera.get_offset();
         // Render characters
-        for (render, position) in (&render, &position).join() {
-            world_screen.put_char_ex(position.x, position.y, render.c, colors::RED, colors::BLACK);
+        for (render, position) in (&render, &position).join().filter(|&(_, ref p)| camera.within_bounds((p.x, p.y))) {
+            world_screen.put_char_ex(position.x - c_offset.0, position.y - c_offset.1, render.c, colors::RED, colors::BLACK);
         }
 
         // World window frame + blitting
@@ -141,10 +144,11 @@ impl RenderSystem {
         }
     }
 
-    fn draw_tiles(console: &mut Console, map: &Map) {
+    fn draw_tiles(console: &mut Console, map: &Map, camera: &Camera) {
+        let c_offset = camera.get_offset();
         for x in 0..WORLD_WINDOW_SIZE.0 {
             for y in 0..WORLD_WINDOW_SIZE.1 {
-                match map.get_tile(x as usize, y as usize, 0 as usize) {
+                match map.get_tile(x as usize + c_offset.0 as usize, y as usize + c_offset.1 as usize, 0 as usize) {
                     Some(tile) => { 
                         let mut c: char;
                         let mut foreground: colors::Color;

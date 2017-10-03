@@ -6,6 +6,7 @@ extern crate specs;
 use self::specs::{Component, VecStorage, System, WriteStorage, ReadStorage,
                     Fetch, FetchMut, Join, Entities, Entity};
 
+use game::WorldAttributes;
 use components::action::{ActionControllerSystem, Direction};
 use components::position::CharacterPositionComponent;
 
@@ -35,23 +36,24 @@ pub struct CameraSystem;
 impl<'a> System<'a> for CameraSystem {
     type SystemData = (Entities<'a>,
                        ReadStorage<'a, CharacterPositionComponent>,
-                       FetchMut<'a, Camera>);
+                       FetchMut<'a, Camera>,
+                       Fetch<'a, WorldAttributes>);
 
     fn run(&mut self, data: Self::SystemData) {
-        let (entities, positions, mut camera) = data;
+        let (entities, positions, mut camera, attrs) = data;
 
 
         match camera.get_state() {
 
             CameraState::Fixed(x, y) => {
                 // TODO error check
-                camera.set_position((x, y));
+                camera.set_position((x, y), (attrs.size.0, attrs.size.1));
             }
 
             CameraState::Attached(id) => {
                 match (&*entities, &positions).join().find(|&(ref e, _)| e.id() == id) {
                     Some((_, position)) => {
-                        camera.set_position((position.x, position.y));
+                        camera.set_position((position.x, position.y), (attrs.size.0, attrs.size.1));
                     }
 
                     None => {
@@ -60,7 +62,6 @@ impl<'a> System<'a> for CameraSystem {
                 }
             }
         }
-        println!("{:?}", *camera);
     }
 }
 
@@ -68,14 +69,17 @@ impl Camera {
     pub fn new() -> Self {
         // Default to attached to player
         return Self {
-            x: 0,
-            y: 0,
+            x: 40,
+            y: 40,
             w: 80,
             h: 80,
             state: CameraState::Attached(0),
         };
     }
 
+    pub fn get_offset(&self) -> (i32, i32) {
+        return (self.x - self.w as i32 / 2, self.y - self.h as i32 / 2);
+    }
 
     pub fn get_position(&self) -> (i32, i32) {
         return (self.x, self.y);
@@ -86,7 +90,12 @@ impl Camera {
         return (self.w, self.h);
     }
 
-    pub fn set_position(&mut self, p: (i32, i32)) {
+    pub fn within_bounds(&self, p: (i32, i32)) -> bool {
+        return (p.0 >= self.x - self.w as i32 / 2) && (p.0 < self.x + self.w as i32 / 2) 
+            && (p.1 >= self.y - self.h as i32 / 2) && (p.1 < self.y + self.h as i32 / 2);
+    }
+
+    pub fn set_position(&mut self, p: (i32, i32), max: (i32, i32)) {
         self.x = p.0;
         self.y = p.1;
 
@@ -94,8 +103,16 @@ impl Camera {
             self.x = self.w as i32 / 2;
         }
 
-        if (self.y < self.h as i32 / 2) {
+        if self.y < self.h as i32 / 2 {
             self.y = self.h as i32 / 2;
+        }
+
+        if self.x > max.0 - self.w as i32 / 2 {
+            self.x = max.0 - self.w as i32 / 2;
+        }
+
+        if self.y > max.1 - self.h as i32 / 2 {
+            self.y = max.1 - self.h as i32 / 2;
         }
     }
 

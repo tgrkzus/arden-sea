@@ -132,13 +132,15 @@ impl Game {
             .build();
 
         // Add fetchable resource (Note, this is a move)
+        let sizeX = 120;
+        let sizeY = 120;
         world.add_resource(window);
-        world.add_resource(WorldAttributes { size: (80, 80), });
+        world.add_resource(WorldAttributes { size: (sizeX, sizeY), });
         world.add_resource(LogContent { content: vec!["Welcome to the world!".to_string()] , });
         world.add_resource(Camera::new());
         Self::reset_input_status(&mut world);
 
-        let mut map = Map::new(80, 80, 5);
+        let mut map = Map::new(sizeX as usize, sizeY as usize, 5);
         /*
         map.set_tile(Tile { tile_type: TileType::Wall }, 4, 5, 0);
         map.set_tile(Tile { tile_type: TileType::Wall }, 5, 4, 0);
