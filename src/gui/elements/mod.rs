@@ -56,8 +56,7 @@ impl GuiList {
 
         if self.selected == 0 {
             self.selected = (self.elements.len() as u32) - 1;
-        }
-        else {
+        } else {
             self.selected -= 1;
         }
     }
@@ -116,7 +115,12 @@ impl GuiList {
         }
 
         for j in 0..w {
-            console.set_char_background(j, self.get_index() as i32, colors::WHITE, BackgroundFlag::Set);
+            console.set_char_background(
+                j,
+                self.get_index() as i32,
+                colors::WHITE,
+                BackgroundFlag::Set,
+            );
             console.set_char_foreground(j, self.get_index() as i32, colors::BLACK);
         }
 

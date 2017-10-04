@@ -6,12 +6,12 @@ use self::tcod::console::Root;
 use self::tcod::input::KeyCode;
 
 extern crate specs;
-use self::specs::{Component, VecStorage, System, WriteStorage, ReadStorage,
-                    Fetch, FetchMut, Join, EntitiesRes, Entity, Entities};
+use self::specs::{Component, VecStorage, System, WriteStorage, ReadStorage, Fetch, FetchMut, Join,
+                  EntitiesRes, Entity, Entities};
 
 use components::position::CharacterPositionComponent;
 use components::state::{TurnStateComponent, ActionState};
-use components::information::{InformationComponent};
+use components::information::InformationComponent;
 use game::{WorldAttributes, LogContent};
 
 use world::map::{TileType, Tile, Map};
@@ -49,22 +49,28 @@ pub enum Direction {
 pub struct ActionControllerSystem;
 impl<'a> System<'a> for ActionControllerSystem {
     type SystemData = (WriteStorage<'a, CharacterPositionComponent>,
-                       ReadStorage<'a, TurnStateComponent>,
-                       ReadStorage<'a, InformationComponent>,
-                       Fetch<'a, WorldAttributes>,
-                       FetchMut<'a, Map>,
-                       FetchMut<'a, LogContent>,
-                       Entities<'a>);
+     ReadStorage<'a, TurnStateComponent>,
+     ReadStorage<'a, InformationComponent>,
+     Fetch<'a, WorldAttributes>,
+     FetchMut<'a, Map>,
+     FetchMut<'a, LogContent>,
+     Entities<'a>);
 
     fn run(&mut self, data: Self::SystemData) {
         let (mut positions, turns, infos, attr, mut map, mut log, entities) = data;
 
 
-        for turn in (&turns).join().filter(|&ref turn| turn.action == ActionState::None) {
+        for turn in (&turns).join().filter(
+            |&ref turn| turn.action == ActionState::None,
+        )
+        {
             println!("NONE action");
         }
 
-        for (position, turn) in (&mut positions, &turns).join().filter(|&(_, ref turn)| turn.action == ActionState::MoveBy) {
+        for (position, turn) in (&mut positions, &turns).join().filter(|&(_, ref turn)| {
+            turn.action == ActionState::MoveBy
+        })
+        {
             let mut new = Self::add_direction(&(position.x, position.y), &turn.direction);
 
             // Check world bounds
@@ -73,9 +79,11 @@ impl<'a> System<'a> for ActionControllerSystem {
             }
 
             // Check collisions
-            match map.get_tile(new.0 as usize, new.1 as usize, 0).unwrap().tile_type {
+            match map.get_tile(new.0 as usize, new.1 as usize, 0)
+                .unwrap()
+                .tile_type {
                 TileType::Wall | TileType::Air => new = (position.x, position.y),
-                TileType::Ground => { },
+                TileType::Ground => {}
             }
 
 
@@ -83,48 +91,63 @@ impl<'a> System<'a> for ActionControllerSystem {
             position.y = new.1;
         }
 
-        for (position, turn) in (&mut positions, &turns).join().filter(|&(_, ref turn)| turn.action == ActionState::MoveTo) {
+        for (position, turn) in (&mut positions, &turns).join().filter(|&(_, ref turn)| {
+            turn.action == ActionState::MoveTo
+        })
+        {
             //position.x = turn.vec.0;
             //position.y = turn.vec.1;
         }
 
-        for (position, turn) in (&positions, &turns).join().filter(|&(_, ref turn)| turn.action == ActionState::Examine) {
+        for (position, turn) in (&positions, &turns).join().filter(|&(_, ref turn)| {
+            turn.action == ActionState::Examine
+        })
+        {
             let mut new = Self::add_direction(&(position.x, position.y), &turn.direction);
 
             let mut result: String = "There's nothing here".to_string();
             if Self::check_valid_coords(new.0, new.1, 0, &attr) {
-                match map.get_tile(new.0 as usize, new.1 as usize, 0).unwrap().tile_type {
+                match map.get_tile(new.0 as usize, new.1 as usize, 0)
+                    .unwrap()
+                    .tile_type {
                     TileType::Wall => {
                         result = "This is a wall".to_string();
                     }
                     TileType::Air => {
                         result = "This is an empty space".to_string();
                     }
-                    TileType::Ground => { 
+                    TileType::Ground => {
                         result = "There's some ground here".to_string();
-                    },
+                    }
                 }
             }
 
             match turn.target {
                 Some(id) => {
-                    match (&positions, &infos, &*entities).join().find(|&(_, _, ref e)| e.id() == id) {
+                    match (&positions, &infos, &*entities).join().find(
+                        |&(_, _, ref e)| {
+                            e.id() == id
+                        },
+                    ) {
                         Some((_, e_info, _)) => {
                             result = format!("There is {} here", e_info.name);
-                        },
+                        }
 
-                        None => { 
+                        None => {
                             panic!("Can't find entity with id");
-                        },
+                        }
                     }
-                },
-                None => {},
+                }
+                None => {}
             }
 
             log.add_message(result);
         }
 
-        for (position, turn) in (&positions, &turns).join().filter(|&(_, ref turn)| turn.action == ActionState::Attack) {
+        for (position, turn) in (&positions, &turns).join().filter(|&(_, ref turn)| {
+            turn.action == ActionState::Attack
+        })
+        {
             let mut new = Self::add_direction(&(position.x, position.y), &turn.direction);
             log.add_message("You hit the wall. Destroying it!".to_string());
         }
@@ -182,14 +205,14 @@ impl ActionControllerSystem {
     fn generate_enemy_action(turn: &mut TurnStateComponent) {
         turn.action = ActionState::MoveBy;
         turn.direction = Direction::None;
-   }
+    }
 }
 
 pub struct ActionGeneratorSystem;
 impl<'a> System<'a> for ActionGeneratorSystem {
     type SystemData = (WriteStorage<'a, TurnStateComponent>,
-                       ReadStorage<'a, ControllerComponent>,
-                       FetchMut<'a, RootConsole>);
+     ReadStorage<'a, ControllerComponent>,
+     FetchMut<'a, RootConsole>);
 
     fn run(&mut self, data: Self::SystemData) {
         let (mut turns, controllers, mut console) = data;
@@ -210,4 +233,3 @@ impl<'a> System<'a> for ActionGeneratorSystem {
         }
     }
 }
-

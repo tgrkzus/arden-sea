@@ -1,7 +1,7 @@
 extern crate tcod;
 extern crate specs;
 use self::specs::*;
-use components::action::{Direction};
+use components::action::Direction;
 
 /// TurnState
 ///     Describes a single turns action

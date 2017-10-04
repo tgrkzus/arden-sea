@@ -52,26 +52,64 @@ impl<'a> System<'a> for RenderSystem {
 
         // Render map
         RenderSystem::draw_tiles(&mut world_screen, &map, &camera);
-        
+
         let c_offset = camera.get_offset();
         // Render characters
-        for (render, position) in (&render, &position).join().filter(|&(_, ref p)| camera.within_bounds((p.x, p.y))) {
-            world_screen.put_char_ex(position.x - c_offset.0, position.y - c_offset.1, render.c, colors::RED, colors::BLACK);
+        for (render, position) in
+            (&render, &position).join().filter(|&(_, ref p)| {
+                camera.within_bounds((p.x, p.y))
+            })
+        {
+            world_screen.put_char_ex(
+                position.x - c_offset.0,
+                position.y - c_offset.1,
+                render.c,
+                colors::RED,
+                colors::BLACK,
+            );
         }
 
         // World window frame + blitting
-        RenderSystem::draw_frame(&mut *window, WORLD_OFFSET.0 - 1, WORLD_OFFSET.1 - 1, WORLD_WINDOW_SIZE.0 + 1, WORLD_WINDOW_SIZE.1 + 1, colors::DESATURATED_BLUE);
-        tcod::console::blit(&world_screen, (0, 0), WORLD_WINDOW_SIZE,
-                      &mut (*window), WORLD_OFFSET, 1.0, 1.0);
+        RenderSystem::draw_frame(
+            &mut *window,
+            WORLD_OFFSET.0 - 1,
+            WORLD_OFFSET.1 - 1,
+            WORLD_WINDOW_SIZE.0 + 1,
+            WORLD_WINDOW_SIZE.1 + 1,
+            colors::DESATURATED_BLUE,
+        );
+        tcod::console::blit(
+            &world_screen,
+            (0, 0),
+            WORLD_WINDOW_SIZE,
+            &mut (*window),
+            WORLD_OFFSET,
+            1.0,
+            1.0,
+        );
 
 
         // Write to log
         log_screen.print_rect(0, 0, LOG_SIZE.0, LOG_SIZE.1, log.content.join("\n"));
 
         // Log window frame + blitting
-        RenderSystem::draw_frame(&mut *window, LOG_OFFSET.0 - 1, LOG_OFFSET.1 - 1, LOG_SIZE.0 + 1, LOG_SIZE.1 + 1, colors::DESATURATED_BLUE);
-        tcod::console::blit(&log_screen, (0, 0), LOG_SIZE,
-                      &mut (*window), LOG_OFFSET, 1.0, 1.0);
+        RenderSystem::draw_frame(
+            &mut *window,
+            LOG_OFFSET.0 - 1,
+            LOG_OFFSET.1 - 1,
+            LOG_SIZE.0 + 1,
+            LOG_SIZE.1 + 1,
+            colors::DESATURATED_BLUE,
+        );
+        tcod::console::blit(
+            &log_screen,
+            (0, 0),
+            LOG_SIZE,
+            &mut (*window),
+            LOG_OFFSET,
+            1.0,
+            1.0,
+        );
 
         // Draw input status bar
         window.set_default_foreground(colors::WHITE);
@@ -79,33 +117,39 @@ impl<'a> System<'a> for RenderSystem {
         match *input_status {
             InputStatus::None => {
                 status = "".to_string();
-            },
+            }
             InputStatus::Ok => {
                 status = "Ok".to_string();
-            },
+            }
             InputStatus::Target => {
                 status = "Target".to_string();
-            },
+            }
             InputStatus::Examine => {
                 status = "Examine".to_string();
-            },
+            }
             InputStatus::Attack => {
                 status = "Attack".to_string();
-            },
+            }
             InputStatus::Fail => {
                 status = "Invalid Input".to_string();
                 window.set_default_background(colors::RED);
-            },
+            }
             InputStatus::Gui(ref action, ref gui) => {
                 status = "Gui".to_string();
                 Self::draw_gui(&mut *window, &gui);
-            },
+            }
             _ => {
                 panic!("Unknown gui type");
-            },
+            }
         }
-        window.print_ex(WORLD_OFFSET.0, WORLD_OFFSET.1 + WORLD_WINDOW_SIZE.1 + 1, BackgroundFlag::Set, TextAlignment::Left, status);
-        
+        window.print_ex(
+            WORLD_OFFSET.0,
+            WORLD_OFFSET.1 + WORLD_WINDOW_SIZE.1 + 1,
+            BackgroundFlag::Set,
+            TextAlignment::Left,
+            status,
+        );
+
         // Flush changes
         window.flush();
     }
@@ -113,11 +157,6 @@ impl<'a> System<'a> for RenderSystem {
 
 impl RenderSystem {
     fn draw_gui(mut console: &mut RootConsole, gui: &GuiType) {
-        //let mut gui_screen = Offscreen::new(LOG_SIZE.0, LOG_SIZE.1); 
-        //RenderSystem::draw_frame(&mut *window, WORLD_OFFSET.0 - 1, WORLD_OFFSET.1 - 1, WORLD_WINDOW_SIZE.0 + 1, WORLD_WINDOW_SIZE.1 + 1, colors::DESATURATED_BLUE); 
-        //tcod::console::blit(&gui_screen, (0, 0), WORLD_WINDOW_SIZE,
-        //             &mut (*window), WORLD_OFFSET, 1.0, 1.0);
-
         // Fade background
         let w = console.width();
         let h = console.height();
@@ -148,8 +187,12 @@ impl RenderSystem {
         let c_offset = camera.get_offset();
         for x in 0..WORLD_WINDOW_SIZE.0 {
             for y in 0..WORLD_WINDOW_SIZE.1 {
-                match map.get_tile(x as usize + c_offset.0 as usize, y as usize + c_offset.1 as usize, 0 as usize) {
-                    Some(tile) => { 
+                match map.get_tile(
+                    x as usize + c_offset.0 as usize,
+                    y as usize + c_offset.1 as usize,
+                    0 as usize,
+                ) {
+                    Some(tile) => {
                         let mut c: char;
                         let mut foreground: colors::Color;
                         let mut background: colors::Color;
@@ -171,7 +214,7 @@ impl RenderSystem {
                             }
                         }
                         console.put_char_ex(x, y, c, foreground, background);
-                    },
+                    }
                     None => panic!("No tile what"),
                 }
             }
@@ -179,7 +222,14 @@ impl RenderSystem {
 
     }
 
-    pub fn draw_frame(console: &mut Console, x: i32, y: i32, width: i32, height: i32, color: colors::Color) {
+    pub fn draw_frame(
+        console: &mut Console,
+        x: i32,
+        y: i32,
+        width: i32,
+        height: i32,
+        color: colors::Color,
+    ) {
         console.set_default_foreground(color);
         console.horizontal_line(x, y, width, BackgroundFlag::None);
         console.horizontal_line(x, y + height, width, BackgroundFlag::None);

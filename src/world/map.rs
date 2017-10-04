@@ -5,7 +5,8 @@ use self::noise::{NoiseModule, Perlin, Seedable};
 pub enum TileType {
     Wall,
     Ground,
-    Air, }
+    Air,
+}
 
 #[derive(Debug)]
 pub struct Tile {
@@ -35,28 +36,30 @@ impl Map {
             let z = i - x * height * depth - y * depth;
 
             let modifier = 900.0;
-            let n = perlin.get([
-                               x as f32 / width as f32 * modifier, 
-                               y as f32 / height as f32 * modifier, 
-                               z as f32 / depth as f32 * modifier]);
+            let n = perlin.get(
+                [
+                    x as f32 / width as f32 * modifier,
+                    y as f32 / height as f32 * modifier,
+                    z as f32 / depth as f32 * modifier,
+                ],
+            );
 
             //println!("{} {} {}: {}", x, y, z, n);
             let tile: Tile;
             if n > 0.8 {
                 tile = Tile { tile_type: TileType::Wall };
-            }
-            else {
+            } else {
                 tile = Tile { tile_type: TileType::Ground };
             }
-                vec.push(tile);
+            vec.push(tile);
         }
 
-        return Self { 
+        return Self {
             width: width,
             height: height,
             depth: depth,
             tiles: vec,
-        }
+        };
     }
 
     pub fn get_tile(&self, x: usize, y: usize, z: usize) -> Option<&Tile> {

@@ -11,4 +11,3 @@ pub struct InformationComponent {
 impl Component for InformationComponent {
     type Storage = VecStorage<Self>;
 }
-

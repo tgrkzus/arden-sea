@@ -1,20 +1,22 @@
 extern crate tcod;
-use self::tcod::{RootConsole};
+use self::tcod::RootConsole;
 use self::tcod::input::{Key, KeyCode};
 use game::InputStatus;
-use components::action::{Direction};
+use components::action::Direction;
 use components::player::PlayerActionGeneratorSystem;
 
 #[derive(Debug)]
 pub enum GuiKey {
-    Exit,               // Esc
-    Move(Direction),    // Directionals
-    Confirm,            // Enter
-    Info,               // E key (generic 'give me more info' key)
+    Exit, // Esc
+    Move(Direction), // Directionals
+    Confirm, // Enter
+    Info, // E key (generic 'give me more info' key)
 }
 
 pub trait Gui {
-    fn new(title: String) -> Self where Self:Sized;
+    fn new(title: String) -> Self
+    where
+        Self: Sized;
 
     fn set_title(&mut self, title: String);
     fn get_title(&self) -> &String;
@@ -35,7 +37,7 @@ pub trait Gui {
                 return Some(GuiKey::Move(p));
             }
             // Do nothing if no value
-            None => { 
+            None => {
                 if key.code == KeyCode::Char {
                     match key.printable {
                         'e' => {
@@ -45,8 +47,7 @@ pub trait Gui {
                             return None;
                         }
                     }
-                }
-                else {
+                } else {
                     match key.code {
                         KeyCode::Escape => {
                             return Some(GuiKey::Exit);
@@ -59,8 +60,7 @@ pub trait Gui {
                         }
                     }
                 }
-            },
+            }
         }
     }
-
 }

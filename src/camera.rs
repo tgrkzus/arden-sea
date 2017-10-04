@@ -3,8 +3,8 @@ use self::tcod::RootConsole;
 use self::tcod::console::Root;
 
 extern crate specs;
-use self::specs::{Component, VecStorage, System, WriteStorage, ReadStorage,
-                    Fetch, FetchMut, Join, Entities, Entity};
+use self::specs::{Component, VecStorage, System, WriteStorage, ReadStorage, Fetch, FetchMut, Join,
+                  Entities, Entity};
 
 use game::WorldAttributes;
 use components::action::{ActionControllerSystem, Direction};
@@ -12,7 +12,7 @@ use components::position::CharacterPositionComponent;
 
 /// State of the camera
 ///     Fixed at an (x, y) world point
-///     Attached to an entity id 
+///     Attached to an entity id
 #[derive(Debug, Clone)]
 pub enum CameraState {
     Fixed(i32, i32),
@@ -35,9 +35,9 @@ pub struct Camera {
 pub struct CameraSystem;
 impl<'a> System<'a> for CameraSystem {
     type SystemData = (Entities<'a>,
-                       ReadStorage<'a, CharacterPositionComponent>,
-                       FetchMut<'a, Camera>,
-                       Fetch<'a, WorldAttributes>);
+     ReadStorage<'a, CharacterPositionComponent>,
+     FetchMut<'a, Camera>,
+     Fetch<'a, WorldAttributes>);
 
     fn run(&mut self, data: Self::SystemData) {
         let (entities, positions, mut camera, attrs) = data;
@@ -51,7 +51,9 @@ impl<'a> System<'a> for CameraSystem {
             }
 
             CameraState::Attached(id) => {
-                match (&*entities, &positions).join().find(|&(ref e, _)| e.id() == id) {
+                match (&*entities, &positions).join().find(
+                    |&(ref e, _)| e.id() == id,
+                ) {
                     Some((_, position)) => {
                         camera.set_position((position.x, position.y), (attrs.size.0, attrs.size.1));
                     }
@@ -91,8 +93,9 @@ impl Camera {
     }
 
     pub fn within_bounds(&self, p: (i32, i32)) -> bool {
-        return (p.0 >= self.x - self.w as i32 / 2) && (p.0 < self.x + self.w as i32 / 2) 
-            && (p.1 >= self.y - self.h as i32 / 2) && (p.1 < self.y + self.h as i32 / 2);
+        return (p.0 >= self.x - self.w as i32 / 2) && (p.0 < self.x + self.w as i32 / 2) &&
+            (p.1 >= self.y - self.h as i32 / 2) &&
+            (p.1 < self.y + self.h as i32 / 2);
     }
 
     pub fn set_position(&mut self, p: (i32, i32), max: (i32, i32)) {

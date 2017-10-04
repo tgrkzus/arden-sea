@@ -1,4 +1,4 @@
-use std::process; 
+use std::process;
 
 extern crate tcod;
 use self::tcod::RootConsole;
@@ -13,7 +13,7 @@ use components::player::PlayerActionGeneratorSystem;
 use components::graphics::{RenderSystem, CharacterRenderComponent};
 use components::position::CharacterPositionComponent;
 use components::state::{TurnStateComponent, ActionState};
-use components::information::{InformationComponent};
+use components::information::InformationComponent;
 use camera::{Camera, CameraState, CameraSystem};
 use gui::gui::{Gui, GuiKey};
 use gui::target::TargetGui;
@@ -27,7 +27,7 @@ use world::map::{Tile, TileType, Map};
 ///
 /// For example if the status is Ok we simulate the game
 ///             if the status is Fail we recieved invalid input
-///             
+///
 ///             Other statuses indicated we want to take an action but required
 ///             more information. E.g. we want to examine but need a target now.
 ///             The concept of this is so we have a chance to visually update the game
@@ -86,8 +86,11 @@ impl Game {
         return Self {};
     }
 
-    pub fn run(&mut self) { 
-        let window: Root = RootConsole::initializer().size(160, 100).title("Game").init();
+    pub fn run(&mut self) {
+        let window: Root = RootConsole::initializer()
+            .size(160, 100)
+            .title("Game")
+            .init();
 
         let mut world = World::new();
 
@@ -132,11 +135,13 @@ impl Game {
             .build();
 
         // Add fetchable resource (Note, this is a move)
-        let sizeX = 120;
-        let sizeY = 120;
+        let sizeX = 256;
+        let sizeY = 256;
         world.add_resource(window);
-        world.add_resource(WorldAttributes { size: (sizeX, sizeY), });
-        world.add_resource(LogContent { content: vec!["Welcome to the world!".to_string()] , });
+        world.add_resource(WorldAttributes { size: (sizeX, sizeY) });
+        world.add_resource(LogContent {
+            content: vec!["Welcome to the world!".to_string()],
+        });
         world.add_resource(Camera::new());
         Self::reset_input_status(&mut world);
 
@@ -183,16 +188,16 @@ impl Game {
 
                     // Game has been simulated reset input state
                     //Game::reset_input_status(&mut world);
-                },
+                }
 
-                InputStatus::Fail => { 
+                InputStatus::Fail => {
                     println!("Invalid input");
-                },
+                }
 
                 // Do nothing if we have another status. The renderer system should then dispatch
                 // and this will allow the renderer to read the turn status and do various gui
                 // related things (I.e. visually ask more input)
-               _ => {}
+                _ => {}
             }
         }
     }

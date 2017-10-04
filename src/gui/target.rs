@@ -5,7 +5,7 @@ use self::tcod::input::{Key, KeyCode};
 
 use game::InputStatus;
 use gui::gui::{Gui, GuiKey};
-use gui::elements::{GuiList};
+use gui::elements::GuiList;
 use components::graphics::RenderSystem;
 use components::action::Direction;
 
@@ -18,7 +18,7 @@ pub struct TargetGui {
 
 impl Gui for TargetGui {
     fn new(title: String) -> Self {
-        return Self { 
+        return Self {
             title: title,
             list: GuiList::new(),
             ids: Vec::new(),
@@ -54,33 +54,44 @@ impl Gui for TargetGui {
                             Direction::E => {
                                 return Some(InputStatus::Ok);
                             }
-                            _ => {
-                            }
+                            _ => {}
                         }
                     }
 
                     GuiKey::Confirm => {
                         return Some(InputStatus::Ok);
                     }
-                    _ => {
-                    }
+                    _ => {}
                 }
             }
-            None => {                         
+            None => {
                 // Error message?
-            },
+            }
         }
         return None;
     }
 
     fn draw(&self, console: &mut RootConsole, x: i32, y: i32, w: i32, h: i32) {
-        let mut gui_screen = Offscreen::new(30, 30); 
+        let mut gui_screen = Offscreen::new(30, 30);
 
         self.list.draw(&mut gui_screen, 0, 0, w, h);
-        RenderSystem::draw_frame(&mut *console, x - 1, y - 1, w + 1, h + 1, colors::GREEN); 
-        tcod::console::blit(&gui_screen, (0, 0), (w, h),
-        &mut (*console), (x, y), 1.0, 1.0);
-        console.print_ex(x + w - 1, y - 1, BackgroundFlag::Set, TextAlignment::Right, self.get_title());
+        RenderSystem::draw_frame(&mut *console, x - 1, y - 1, w + 1, h + 1, colors::GREEN);
+        tcod::console::blit(
+            &gui_screen,
+            (0, 0),
+            (w, h),
+            &mut (*console),
+            (x, y),
+            1.0,
+            1.0,
+        );
+        console.print_ex(
+            x + w - 1,
+            y - 1,
+            BackgroundFlag::Set,
+            TextAlignment::Right,
+            self.get_title(),
+        );
     }
 }
 
