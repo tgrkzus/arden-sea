@@ -56,6 +56,21 @@ impl BodyPart {
     pub fn set_material(&mut self, material: PartMaterial) { 
         self.material = material;
     }
+
+    pub fn print_repr(&self) {
+        if self.attached.len() > 0 {
+            print!("{:?} has: ", self.part_type);
+
+            for part in self.attached.iter() {
+                print!("{:?}, ", part.part_type);
+            }
+            println!("");
+
+            for part in self.attached.iter() {
+                part.print_repr();
+            }
+        }
+    }
 }
 
 pub struct BodyPartBuilder {

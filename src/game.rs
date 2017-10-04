@@ -131,7 +131,7 @@ impl Game {
                       .finalize())
                   .finalize();
 
-        println!("{:?}", body);
+        body.print_repr();
 
         // Create entities
         world
