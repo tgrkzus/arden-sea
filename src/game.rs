@@ -14,6 +14,7 @@ use components::graphics::{RenderSystem, CharacterRenderComponent};
 use components::position::CharacterPositionComponent;
 use components::state::{TurnStateComponent, ActionState};
 use components::information::InformationComponent;
+use components::body::{PartType, PartMaterial, BodyPart, BodyComponent, BodyPartBuilder};
 use camera::{Camera, CameraState, CameraSystem};
 use gui::gui::{Gui, GuiKey};
 use gui::target::TargetGui;
@@ -100,6 +101,37 @@ impl Game {
         world.register::<TurnStateComponent>();
         world.register::<ControllerComponent>();
         world.register::<InformationComponent>();
+        world.register::<BodyComponent>();
+
+        // Make a standard body
+        let normal_arm = BodyPartBuilder::new(PartType::Arm)
+            .attach_part(
+                BodyPartBuilder::new(PartType::Hand)
+                .attach_many_of_part(
+                    BodyPartBuilder::new(PartType::Finger).finalize(), 5)
+                .finalize())
+            .finalize();
+
+        let normal_leg = BodyPartBuilder::new(PartType::Leg)
+            .attach_part(
+                BodyPartBuilder::new(PartType::Foot)
+                .attach_many_of_part(
+                    BodyPartBuilder::new(PartType::Toe).finalize(), 5)
+                .finalize())
+            .finalize();
+
+        let body = BodyPartBuilder::new(PartType::Head)
+                  .attach_part(
+                      BodyPartBuilder::new(PartType::Neck)
+                      .attach_part(
+                          BodyPartBuilder::new(PartType::Torso)
+                          .attach_many_of_part(normal_arm, 2)
+                          .attach_many_of_part(normal_leg, 2)
+                          .finalize())
+                      .finalize())
+                  .finalize();
+
+        println!("{:?}", body);
 
         // Create entities
         world
@@ -107,6 +139,7 @@ impl Game {
             .with(ControllerComponent { controller: Controllers::Player })
             .with(CharacterPositionComponent { x: 4, y: 4 })
             .with(CharacterRenderComponent { c: '@' })
+            .with(BodyComponent { root_part: body })
             .with(TurnStateComponent {
                 direction: Direction::None,
                 action: ActionState::None,

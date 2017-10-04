@@ -13,6 +13,7 @@ use components::position::CharacterPositionComponent;
 use components::state::{TurnStateComponent, ActionState};
 use components::action::{ActionControllerSystem, ControllerComponent, Controllers, Direction};
 use components::information::InformationComponent;
+use components::body::{PartType, PartMaterial, BodyPart, BodyComponent};
 
 use gui::gui::{Gui, GuiKey};
 use gui::target::TargetGui;

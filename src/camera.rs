@@ -102,7 +102,7 @@ impl Camera {
         self.x = p.0;
         self.y = p.1;
 
-        if (self.x < self.w as i32 / 2) {
+        if self.x < self.w as i32 / 2 {
             self.x = self.w as i32 / 2;
         }
 
