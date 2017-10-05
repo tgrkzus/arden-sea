@@ -117,7 +117,7 @@ impl BodyPartBuilder {
 #[derive(Debug)]
 pub struct BodyComponent {
     pub root_part: BodyPart,
-    pub health: i32;
+    pub health: i32,
 }
 
 impl Component for BodyComponent {
@@ -126,7 +126,7 @@ impl Component for BodyComponent {
 
 impl BodyComponent {
     pub fn is_dead(&self) -> bool {
-        return health <= 0;
+        return self.health <= 0;
         //return self.root_part.is_dead();
     }
 }

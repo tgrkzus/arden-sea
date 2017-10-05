@@ -15,9 +15,11 @@ use components::position::CharacterPositionComponent;
 use components::state::{TurnStateComponent, ActionState};
 use components::information::InformationComponent;
 use components::body::{PartType, PartMaterial, BodyPart, BodyComponent, BodyPartBuilder};
+use components::stats::StatsComponent;
 use camera::{Camera, CameraState, CameraSystem};
 use gui::gui::{Gui, GuiKey};
 use gui::target::TargetGui;
+use gui::characterinfo::CharacterInfoGui;
 
 use world::map::{Tile, TileType, Map};
 
@@ -61,6 +63,7 @@ pub enum InputStatus {
 #[derive(Debug, Clone)]
 pub enum GuiType {
     Target(TargetGui),
+    CharacterInfo(CharacterInfoGui),
 }
 
 #[derive(Debug)]
@@ -102,6 +105,7 @@ impl Game {
         world.register::<ControllerComponent>();
         world.register::<InformationComponent>();
         world.register::<BodyComponent>();
+        world.register::<StatsComponent>();
 
         // Make a standard body
         let normal_arm = BodyPartBuilder::new(PartType::Arm)
@@ -131,15 +135,14 @@ impl Game {
                       .finalize())
                   .finalize();
 
-        body.print_repr();
-
         // Create entities
         world
             .create_entity()
             .with(ControllerComponent { controller: Controllers::Player })
             .with(CharacterPositionComponent { x: 4, y: 4 })
             .with(CharacterRenderComponent { c: '@' })
-            .with(BodyComponent { root_part: body })
+            .with(BodyComponent { root_part: body.clone(), health: 100})
+            .with(StatsComponent::new(10, 10, 10, 10, 10, 10, 10, 10))
             .with(TurnStateComponent {
                 direction: Direction::None,
                 action: ActionState::None,
@@ -156,6 +159,8 @@ impl Game {
             .with(ControllerComponent { controller: Controllers::Enemy })
             .with(CharacterPositionComponent { x: 7, y: 8 })
             .with(CharacterRenderComponent { c: 'E' })
+            .with(BodyComponent { root_part: body.clone(), health: 100})
+            .with(StatsComponent::new(10, 10, 10, 10, 10, 10, 10, 10))
             .with(TurnStateComponent {
                 direction: Direction::None,
                 action: ActionState::None,

@@ -5,4 +5,5 @@ pub mod action;
 pub mod state;
 pub mod information;
 pub mod body;
+pub mod stats;
 extern crate tcod;

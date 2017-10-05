@@ -14,22 +14,22 @@ use components::state::{TurnStateComponent, ActionState};
 use components::action::{ActionControllerSystem, ControllerComponent, Controllers, Direction};
 use components::information::InformationComponent;
 use components::body::{PartType, PartMaterial, BodyPart, BodyComponent};
+use components::stats::StatsComponent;
 
 use gui::gui::{Gui, GuiKey};
 use gui::target::TargetGui;
+use gui::characterinfo::CharacterInfoGui;
 
 use game::{InputStatus, GuiType};
-
-#[derive(Debug)]
-struct OtherEntities<'a> {
-    pub e: &'a Vec<
-        (Entity,
-         &'a CharacterPositionComponent,
-         &'a InformationComponent,
-         &'a mut TurnStateComponent,
-         &'a ControllerComponent),
-    >,
-}
+type EntityType<'a> = (
+    Entity,
+    &'a CharacterPositionComponent,
+    &'a InformationComponent,
+    &'a mut TurnStateComponent,
+    &'a ControllerComponent,
+    &'a BodyComponent,
+    &'a StatsComponent,
+    );
 
 pub struct PlayerActionGeneratorSystem;
 impl<'a> System<'a> for PlayerActionGeneratorSystem {
@@ -38,28 +38,29 @@ impl<'a> System<'a> for PlayerActionGeneratorSystem {
      ReadStorage<'a, ControllerComponent>,
      ReadStorage<'a, CharacterPositionComponent>,
      ReadStorage<'a, InformationComponent>,
+     ReadStorage<'a, BodyComponent>,
+     ReadStorage<'a, StatsComponent>,
      FetchMut<'a, RootConsole>,
      FetchMut<'a, InputStatus>);
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut turns, entities, controller, positions, infos, mut console, mut status) = data;
+        let (mut turns, entities, controller, positions, infos, bodys, stats, mut console, mut status) = data;
 
         // We assume our input failed and maybe prove otherwise!
         let mut new_status = InputStatus::Fail;
 
         let (mut player, mut others): (Vec<_>, Vec<_>) =
-            (&*entities, &positions, &infos, &mut turns, &controller)
+            (&*entities, &positions, &infos, &mut turns, &controller, &bodys, &stats)
                 .join()
-                .partition(|&(_, _, _, _, c)| c.controller == Controllers::Player);
+                .partition(|&(_, _, _, _, c, _, _)| c.controller == Controllers::Player);
 
         match player.iter_mut().last() {
-            Some(&mut (ref ent, ref pos, ref info, ref mut turn, ref controller)) => {
+            Some(&mut (ent, ref pos, ref info, ref mut turn, ref controller, ref body, ref stat)) => {
                 let key = (*console).wait_for_keypress(false);
                 Self::check_input(
                     &key,
-                    pos,
-                    OtherEntities { e: &others },
-                    turn,
+                    (ent, pos, info, turn, controller, body, stat),
+                    others,
                     &mut new_status,
                     &mut status,
                 );
@@ -72,15 +73,17 @@ impl<'a> System<'a> for PlayerActionGeneratorSystem {
     }
 }
 
+
+
 impl PlayerActionGeneratorSystem {
     fn check_input(
         key: &tcod::input::Key,
-        playerPosition: &CharacterPositionComponent,
-        others: OtherEntities,
-        mut turn: &mut TurnStateComponent,
+        player: EntityType,
+        others: Vec<EntityType>,
         mut new_status: &mut InputStatus,
         status: &mut InputStatus,
     ) {
+        let (entity, position, info, mut turn, controller, body, stat) = player;
         match *status {
             // Gui actions
             InputStatus::Gui(ref action, ref mut guiType) => {
@@ -95,9 +98,18 @@ impl PlayerActionGeneratorSystem {
                             None => {}
                         }
                     }
+
+                    GuiType::CharacterInfo(ref mut info) => {
+                        match info.process_input(&key) {
+                            Some(result) => {
+                                *new_status = result;
+                                return;
+                            }
+                            None => {}
+                        }
+                    }
                 }
-                // Clone gui to new status (TODO possible to move this?)
-                *new_status = InputStatus::Gui(Box::new(InputStatus::Examine), guiType.clone());
+                *new_status = InputStatus::Gui(action.clone(), guiType.clone());
             }
 
             // Examine action
@@ -113,12 +125,12 @@ impl PlayerActionGeneratorSystem {
                         let mut target = TargetGui::new("Pick a target".to_string());
 
                         let new = ActionControllerSystem::add_direction(
-                            &(playerPosition.x, playerPosition.y),
+                            &(position.x, position.y),
                             &turn.direction,
-                        );
-                        for &(ent, pos, info, _, _) in
-                            others.e.iter().filter(
-                                |&&(_, ref p, _, _, _)| (p.x, p.y) == new,
+                        ); 
+                        for &(ent, pos, info, _, _, _, _) in
+                            others.iter().filter(
+                                |&&(_, ref p, _, _, _, _, _)| (p.x, p.y) == new,
                             )
                         {
                             target.add_to_list(ent.id(), info.name.clone());
@@ -212,6 +224,12 @@ impl PlayerActionGeneratorSystem {
                 // Examine
                 'e' => {
                     status = InputStatus::Examine;
+                }
+                
+                // Character info
+                'Z' => {
+                    status = InputStatus::Gui(Box::new(InputStatus::None), GuiType::CharacterInfo(
+                                                  CharacterInfoGui::new("Character Info".to_string())));
                 }
 
                 // Attack

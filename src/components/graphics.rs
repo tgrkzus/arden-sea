@@ -177,6 +177,14 @@ impl RenderSystem {
                 targetGui.draw(&mut console, x, y, w, h);
             }
 
+            GuiType::CharacterInfo(ref info) => {
+                let w = 80;
+                let h = 80;
+                let x = WORLD_OFFSET.0 + WORLD_WINDOW_SIZE.0 / 2 - w / 2;
+                let y = WORLD_OFFSET.1 + WORLD_WINDOW_SIZE.1 / 2 - h / 2;
+                info.draw(&mut console, x, y, w, h);
+            }
+
             _ => {
                 panic!("Unknown gui type");
             }
